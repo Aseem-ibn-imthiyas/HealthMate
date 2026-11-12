@@ -35,6 +35,14 @@ import com.healthmate.ui.notifications.NotificationsBottomSheet
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.lifecycle.viewmodel.compose.viewModel
+import kotlinx.coroutines.flow.StateFlow
+import androidx.compose.runtime.collectAsState
+import com.healthmate.data.heartrate.HeartRateViewModel
+import androidx.compose.foundation.Canvas
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.graphics.Path
+import androidx.compose.ui.graphics.drawscope.Stroke
 
 private val BackgroundColor = Color(0xFFF7F8FF)
 private val PrimaryBlue = Color(0xFF2563EB)
@@ -47,6 +55,10 @@ private val CardBorder = Color(0xFFE2EAF7)
 @Composable
 fun DashboardScreen(
 
+    todaySteps: Int = 0,
+    todayCalories: Int = 0,
+    todayWater: Int = 0,
+    weeklyRecordCount: Int = 0,
     onNotificationClick: () -> Unit = {},
     onViewPlanClick: () -> Unit = {},
     onDetailsClick: () -> Unit = {},
@@ -56,6 +68,9 @@ fun DashboardScreen(
     var showNotifications by remember {
         mutableStateOf(false)
     }
+
+    val heartRateViewModel: HeartRateViewModel = viewModel()
+    val heartRate by heartRateViewModel.heartRate.collectAsState()
 
     Column(
         modifier = Modifier
@@ -132,10 +147,12 @@ fun DashboardScreen(
                     horizontalArrangement = Arrangement.spacedBy(14.dp)
                 ) {
                     StepsCard(
+                        steps = todaySteps,
                         modifier = Modifier.weight(1f)
                     )
 
                     WaterCard(
+                        water = todayWater,
                         modifier = Modifier.weight(1f)
                     )
                 }
@@ -144,10 +161,12 @@ fun DashboardScreen(
                     horizontalArrangement = Arrangement.spacedBy(14.dp)
                 ) {
                     CaloriesCard(
+                        calories = todayCalories,
                         modifier = Modifier.weight(1f)
                     )
 
                     HeartRateCard(
+                        bpm = heartRate?.bpm,
                         modifier = Modifier.weight(1f)
                     )
                 }
@@ -157,6 +176,7 @@ fun DashboardScreen(
 
             // Weekly Health Log
             WeeklyHealthLog(
+                recordCount = weeklyRecordCount,
                 onClick = onWeeklyLogClick
             )
 
@@ -406,6 +426,7 @@ private fun DailyGoalBanner(
 
 @Composable
 private fun StepsCard(
+    steps: Int,
     modifier: Modifier = Modifier
 ) {
     Column(
@@ -450,7 +471,7 @@ private fun StepsCard(
                 contentAlignment = Alignment.Center
             ) {
                 Text(
-                    text = "78%",
+                    text = "${(steps * 100 / 10000).coerceAtMost(100)}%",
                     fontSize = 9.sp,
                     fontWeight = FontWeight.Bold,
                     color = Color.White
@@ -466,7 +487,7 @@ private fun StepsCard(
             )
 
             Text(
-                text = "7,850",
+                text = "%,d".format(steps),
                 fontSize = 25.sp,
                 fontWeight = FontWeight.Bold,
                 color = Color.White
@@ -483,6 +504,7 @@ private fun StepsCard(
 
 @Composable
 private fun WaterCard(
+    water: Int,
     modifier: Modifier = Modifier
 ) {
     Column(
@@ -522,7 +544,7 @@ private fun WaterCard(
             }
 
             SmallStatusTag(
-                text = "75% Goal",
+                text = "${(water * 100 / 2000).coerceAtMost(100)}% Goal",
                 color = Color(0xFF24B9F2),
                 background = Color(0xFFEEF9FF)
             )
@@ -530,7 +552,7 @@ private fun WaterCard(
 
         Column {
             LinearProgressIndicator(
-                progress = { 0.75f },
+                progress = { (water / 2000f).coerceIn(0f, 1f) },
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(5.dp)
@@ -548,7 +570,7 @@ private fun WaterCard(
             )
 
             Text(
-                text = "1,500 ml",
+                text = "%,d ml".format(water),
                 fontSize = 24.sp,
                 fontWeight = FontWeight.Bold,
                 color = Color(0xFF183C75)
@@ -565,6 +587,7 @@ private fun WaterCard(
 
 @Composable
 private fun CaloriesCard(
+    calories: Int,
     modifier: Modifier = Modifier
 ) {
     Column(
@@ -612,7 +635,7 @@ private fun CaloriesCard(
 
         Column {
             LinearProgressIndicator(
-                progress = { 0.70f },
+                progress = { (calories / 600f).coerceIn(0f, 1f) },
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(5.dp)
@@ -630,7 +653,7 @@ private fun CaloriesCard(
             )
 
             Text(
-                text = "420 kcal",
+                text = "$calories kcal",
                 fontSize = 24.sp,
                 fontWeight = FontWeight.Bold,
                 color = Color(0xFF183C75)
@@ -645,8 +668,10 @@ private fun CaloriesCard(
     }
 }
 
+
 @Composable
 private fun HeartRateCard(
+    bpm: Int?,
     modifier: Modifier = Modifier
 ) {
     Column(
@@ -686,18 +711,14 @@ private fun HeartRateCard(
             }
 
             SmallStatusTag(
-                text = "Syncing",
+                text = if (bpm != null) "Syncing" else "Syncing",
                 color = SecondaryColor,
                 background = Color(0xFFF1F4F8)
             )
         }
 
         Column {
-            Text(
-                text = "----------------",
-                fontSize = 10.sp,
-                color = Color(0xFFD2DCEC)
-            )
+            HeartRateWaveform()
 
             Spacer(modifier = Modifier.height(10.dp))
 
@@ -708,20 +729,74 @@ private fun HeartRateCard(
             )
 
             Text(
-                text = "-- bpm",
+                text = bpm?.let { "$it bpm" } ?: "-- bpm",
                 fontSize = 18.sp,
                 fontWeight = FontWeight.Bold,
                 color = Color(0xFF52627A)
             )
 
             Text(
-                text = "No reading available",
+                text = if (bpm != null) "Simulated reading" else "No reading available",
                 fontSize = 10.sp,
                 color = Color(0xFF91A4C0)
             )
         }
     }
 }
+
+
+
+@Composable
+private fun HeartRateWaveform(
+    modifier: Modifier = Modifier
+) {
+    Canvas(
+        modifier = modifier
+            .fillMaxWidth()
+            .height(22.dp)
+    ) {
+        val path = androidx.compose.ui.graphics.Path()
+
+        val points = listOf(
+            0.00f to 0.55f,
+            0.12f to 0.55f,
+            0.19f to 0.48f,
+            0.25f to 0.62f,
+            0.32f to 0.55f,
+            0.40f to 0.55f,
+            0.45f to 0.12f,
+            0.50f to 0.95f,
+            0.56f to 0.30f,
+            0.63f to 0.55f,
+            0.78f to 0.55f,
+            0.86f to 0.48f,
+            0.93f to 0.55f,
+            1.00f to 0.55f
+        )
+
+        points.forEachIndexed { index, point ->
+            val x = point.first * size.width
+            val y = point.second * size.height
+
+            if (index == 0) {
+                path.moveTo(x, y)
+            } else {
+                path.lineTo(x, y)
+            }
+        }
+
+        drawPath(
+            path = path,
+            color = Color(0xFF8670E9),
+            style = androidx.compose.ui.graphics.drawscope.Stroke(
+                width = 2.dp.toPx(),
+                cap = androidx.compose.ui.graphics.StrokeCap.Round,
+                join = androidx.compose.ui.graphics.StrokeJoin.Round
+            )
+        )
+    }
+}
+
 
 @Composable
 private fun SmallStatusTag(
@@ -749,6 +824,7 @@ private fun SmallStatusTag(
 
 @Composable
 private fun WeeklyHealthLog(
+    recordCount: Int,
     onClick: () -> Unit
 ) {
     Row(
@@ -796,7 +872,7 @@ private fun WeeklyHealthLog(
             )
 
             Text(
-                text = "3 records logged this week",
+                text = "$recordCount records logged this week",
                 fontSize = 10.sp,
                 color = SecondaryColor
             )

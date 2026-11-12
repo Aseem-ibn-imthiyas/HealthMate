@@ -26,6 +26,10 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.healthmate.ui.healthrecords.model.HealthRecordUiModel
+import java.text.SimpleDateFormat
+import java.util.Calendar
+import java.util.Date
+import java.util.Locale
 
 private val DetailsBackground = Color(0xFFF7F8FF)
 private val DetailsHeading = Color(0xFF102641)
@@ -38,13 +42,47 @@ fun ViewHealthRecordDetailsScreen(
     record: HealthRecordUiModel,
     onBackClick: () -> Unit,
     modifier: Modifier = Modifier,
-    displayDate: String = "Saturday, October 24",
-    dateBadge: String = "Oct 24 • Today",
     isSynced: Boolean = true,
     stepsTarget: Int = 10000,
     waterTarget: Int = 2500,
     deviceSource: String = "Pixel 7 Sensors"
 ) {
+
+    // Convert the stored ISO date into display formats
+    val parsedDate = SimpleDateFormat(
+        "yyyy-MM-dd",
+        Locale.US
+    ).parse(record.dateIso)
+
+    val displayDate = parsedDate?.let {
+        SimpleDateFormat(
+            "EEEE, MMMM dd",
+            Locale.US
+        ).format(it)
+    } ?: record.date
+
+    val todayDate = SimpleDateFormat(
+        "yyyy-MM-dd",
+        Locale.US
+    ).format(Date())
+
+    val yesterdayCalendar = Calendar.getInstance().apply {
+        add(Calendar.DAY_OF_YEAR, -1)
+    }
+
+    val yesterdayDate = SimpleDateFormat(
+        "yyyy-MM-dd",
+        Locale.US
+    ).format(yesterdayCalendar.time)
+
+    val dateLabel = when (record.dateIso) {
+        todayDate -> "Today"
+        yesterdayDate -> "Yesterday"
+        else -> "Logged"
+    }
+
+    val dateBadge = "${record.date} • $dateLabel"
+
     val stepsProgress = if (stepsTarget > 0) {
         (record.steps.toFloat() / stepsTarget).coerceIn(0f, 1f)
     } else 0f

@@ -26,6 +26,7 @@ import androidx.compose.ui.unit.sp
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
+import java.util.TimeZone
 
 private val FormBackground = Color(0xFFF7F8FC)
 private val FormPrimary = Color(0xFF4035AC)
@@ -44,13 +45,12 @@ fun AddHealthRecordScreen(
         water: Int
     ) -> Unit
 ) {
+
     var selectedDate by remember {
         mutableStateOf(
-            SimpleDateFormat("MM/dd/yyyy", Locale.getDefault())
-                .format(Date())
+            SimpleDateFormat("yyyy-MM-dd", Locale.US).format(Date())
         )
     }
-
     var steps by remember { mutableStateOf("") }
     var calories by remember { mutableStateOf("") }
     var water by remember { mutableStateOf("") }
@@ -63,6 +63,7 @@ fun AddHealthRecordScreen(
     )
 
     if (showDatePicker) {
+
         val datePickerState = rememberDatePickerState()
 
         DatePickerDialog(
@@ -73,11 +74,17 @@ fun AddHealthRecordScreen(
                 TextButton(
                     onClick = {
                         datePickerState.selectedDateMillis?.let { millis ->
-                            selectedDate = SimpleDateFormat(
-                                "MM/dd/yyyy",
-                                Locale.getDefault()
-                            ).format(Date(millis))
+
+                            val formatter = SimpleDateFormat(
+                                "yyyy-MM-dd",
+                                Locale.US
+                            ).apply {
+                                timeZone = TimeZone.getTimeZone("UTC")
+                            }
+
+                            selectedDate = formatter.format(Date(millis))
                         }
+
                         showDatePicker = false
                     }
                 ) {
@@ -281,7 +288,12 @@ fun AddHealthRecordScreen(
                         )
 
                         Text(
-                            text = selectedDate,
+                            text = SimpleDateFormat(
+                                "MM/dd/yyyy",
+                                Locale.US
+                            ).format(
+                                SimpleDateFormat("yyyy-MM-dd", Locale.US).parse(selectedDate)!!
+                            ),
                             fontSize = 14.sp,
                             fontWeight = FontWeight.SemiBold,
                             color = FormHeading

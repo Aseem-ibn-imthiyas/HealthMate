@@ -33,7 +33,9 @@ private val InputBorderColor = Color(0xFFF6E8E8)
 @Composable
 fun ForgotPasswordScreen(
     onContinueClick: (String) -> Unit,
-    onSignInClick: () -> Unit
+    onSignInClick: () -> Unit,
+    isLoading: Boolean = false,
+    errorMessage: String? = null
 ) {
     var email by remember { mutableStateOf("") }
 
@@ -182,6 +184,17 @@ fun ForgotPasswordScreen(
                 }
             }
 
+            if (errorMessage != null) {
+                Text(
+                    text = errorMessage,
+                    fontSize = 13.sp,
+                    color = Color(0xFFDC2626),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(top = 8.dp)
+                )
+            }
+
             Spacer(modifier = Modifier.height(24.dp))
 
             // Continue Button
@@ -189,6 +202,7 @@ fun ForgotPasswordScreen(
                 onClick = {
                     onContinueClick(email.trim())
                 },
+                enabled = !isLoading,
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(56.dp),
@@ -198,12 +212,20 @@ fun ForgotPasswordScreen(
                 ),
                 contentPadding = PaddingValues(0.dp)
             ) {
-                Text(
-                    text = "Continue",
-                    fontSize = 16.sp,
-                    fontWeight = FontWeight.Bold,
-                    color = Color.White
-                )
+                if (isLoading) {
+                    CircularProgressIndicator(
+                        modifier = Modifier.size(22.dp),
+                        color = Color.White,
+                        strokeWidth = 2.dp
+                    )
+                } else {
+                    Text(
+                        text = "Continue",
+                        fontSize = 16.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = Color.White
+                    )
+                }
             }
 
             // Sign In Navigation

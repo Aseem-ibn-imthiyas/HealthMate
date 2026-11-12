@@ -39,7 +39,8 @@ private val InputBorderColor = Color(0xFFF6E8E8)
 fun SignInScreen(
     onSignInClick: (String, String) -> Unit,
     onForgotPasswordClick: () -> Unit,
-    onSignUpClick: () -> Unit
+    onSignUpClick: () -> Unit,
+    errorMessage: String? = null
 ) {
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
@@ -239,6 +240,18 @@ fun SignInScreen(
                     fontSize = 16.sp,
                     fontWeight = FontWeight.Bold,
                     color = Color.White
+                )
+            }
+
+            if (errorMessage != null) {
+                Text(
+                    text = errorMessage,
+                    color = Color(0xFFDC2626),
+                    fontSize = 13.sp,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(top = 10.dp),
+                    textAlign = TextAlign.Center
                 )
             }
 

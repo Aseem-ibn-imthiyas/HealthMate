@@ -9,4 +9,6 @@ data class HealthRecordUiModel(
     val calories: Int,
     val water: Int,
     val updatedAt: String,
+    val dateIso: String = ""
+
 )

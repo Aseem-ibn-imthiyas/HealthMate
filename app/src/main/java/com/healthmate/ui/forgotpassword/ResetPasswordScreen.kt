@@ -37,13 +37,15 @@ private val InputBorderColor = Color(0xFFF6E8E8)
 @Composable
 fun ResetPasswordScreen(
     onResetPasswordClick: (String, String) -> Unit,
-    onSignInClick: () -> Unit
+    onSignInClick: () -> Unit,
+    isLoading: Boolean = false,
+    errorMessage: String? = null
 ) {
     var password by remember { mutableStateOf("") }
     var confirmPassword by remember { mutableStateOf("") }
-
     var passwordVisible by remember { mutableStateOf(false) }
     var confirmPasswordVisible by remember { mutableStateOf(false) }
+    var validationError by remember { mutableStateOf<String?>(null) }
 
     Column(
         modifier = Modifier
@@ -155,16 +157,43 @@ fun ResetPasswordScreen(
                 }
             )
 
+            val displayedError = validationError ?: errorMessage
+
+            if (displayedError != null) {
+                Text(
+                    text = displayedError,
+                    fontSize = 13.sp,
+                    color = Color(0xFFDC2626),
+                    modifier = Modifier.fillMaxWidth()
+                )
+            }
+
             Spacer(modifier = Modifier.height(24.dp))
 
             // Reset Password Button
             Button(
                 onClick = {
-                    onResetPasswordClick(
-                        password,
-                        confirmPassword
-                    )
+                    validationError = when {
+                        password.isBlank() ->
+                            "Please enter a new password."
+
+                        password.length < 8 ->
+                            "Password must contain at least 8 characters."
+
+                        confirmPassword.isBlank() ->
+                            "Please confirm your password."
+
+                        password != confirmPassword ->
+                            "Passwords do not match."
+
+                        else -> null
+                    }
+
+                    if (validationError == null) {
+                        onResetPasswordClick(password, confirmPassword)
+                    }
                 },
+                enabled = !isLoading,
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(56.dp),
@@ -174,12 +203,20 @@ fun ResetPasswordScreen(
                 ),
                 contentPadding = PaddingValues(0.dp)
             ) {
-                Text(
-                    text = "Reset Password",
-                    fontSize = 16.sp,
-                    fontWeight = FontWeight.Bold,
-                    color = Color.White
-                )
+                if (isLoading) {
+                    CircularProgressIndicator(
+                        modifier = Modifier.size(22.dp),
+                        color = Color.White,
+                        strokeWidth = 2.dp
+                    )
+                } else {
+                    Text(
+                        text = "Reset Password",
+                        fontSize = 16.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = Color.White
+                    )
+                }
             }
 
             // Sign In Navigation

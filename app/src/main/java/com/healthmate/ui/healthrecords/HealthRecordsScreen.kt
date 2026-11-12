@@ -20,6 +20,7 @@ import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.LocalFireDepartment
 import androidx.compose.material.icons.filled.WaterDrop
 import androidx.compose.material.icons.filled.AccessTime
+import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -30,6 +31,11 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.healthmate.ui.healthrecords.model.HealthRecordUiModel
+import java.text.SimpleDateFormat
+import java.util.Calendar
+import java.util.Date
+import java.util.Locale
+
 
 private val BackgroundColor = Color(0xFFF7F8FF)
 private val PrimaryBlue = Color(0xFF0052CC)
@@ -40,60 +46,74 @@ private val CardBorder = Color(0xFFE6ECF5)
 private data class CalendarDay(
     val day: String,
     val date: String,
-    val selected: Boolean = false
-)
-
-private val calendarDays = listOf(
-    CalendarDay("Thu", "19"),
-    CalendarDay("Fri", "20"),
-    CalendarDay("Sat", "21"),
-    CalendarDay("Sun", "22"),
-    CalendarDay("Mon", "23"),
-    CalendarDay("Tue", "24", true),
-    CalendarDay("Wed", "25")
-)
-
-private val sampleRecords = listOf(
-    HealthRecordUiModel(
-        id = 1,
-        date = "Oct 24",
-        dateLabel = "Today",
-        steps = 7850,
-        calories = 420,
-        water = 2000,
-        updatedAt = "Updated 20 mins ago"
-    ),
-    HealthRecordUiModel(
-        id = 2,
-        date = "Oct 23",
-        dateLabel = "Yesterday",
-        steps = 9120,
-        calories = 510,
-        water = 2250,
-        updatedAt = "Updated yesterday at 9:45 PM"
-    ),
-    HealthRecordUiModel(
-        id = 3,
-        date = "Tue, Oct 22",
-        dateLabel = "Logged",
-        steps = 6500,
-        calories = 380,
-        water = 1400,
-        updatedAt = "Updated Oct 22 at 8:15 PM"
-    )
+    val hasRecord: Boolean
 )
 
 @Composable
 fun HealthRecordsScreen(
+    onSearchByDate: (String) -> Unit = {},
+    searchResults: List<HealthRecordUiModel> = emptyList(),
+    onClearSearch: () -> Unit = {},
+    records: List<HealthRecordUiModel>,
     modifier: Modifier = Modifier,
     onAddRecordClick: () -> Unit = {},
     onEditRecordClick: (HealthRecordUiModel) -> Unit = {},
     onDeleteRecordClick: (HealthRecordUiModel) -> Unit = {},
     onRecordClick: (HealthRecordUiModel) -> Unit = {},
     onDateSelected: (String) -> Unit = {}
+
 ) {
-    var selectedDate by remember { mutableStateOf("24") }
-    var showEmptyDemo by remember { mutableStateOf(false) }
+
+    var isSearchActive by remember {
+        mutableStateOf(false)
+    }
+
+    // Today's date in ISO format
+    val dateFormatter = remember {
+        SimpleDateFormat("yyyy-MM-dd", Locale.US)
+    }
+
+    // Selected date defaults to today
+    var selectedDate by remember {
+        mutableStateOf(dateFormatter.format(Date()))
+    }
+
+    var searchDateInput by remember {
+        mutableStateOf("")
+    }
+
+    // Generate the latest seven dates, including today
+    val calendarDays = remember {
+        val calendar = Calendar.getInstance()
+
+        (6 downTo 0).map { offset ->
+
+            val dayCalendar = calendar.clone() as Calendar
+
+            dayCalendar.add(Calendar.DAY_OF_YEAR, -offset)
+
+            dateFormatter.format(dayCalendar.time)
+        }
+    }
+
+    // Dates containing saved records
+    val availableRecordDates = remember(records) {
+        records.map { it.dateIso }.toSet()
+    }
+
+    // Records displayed based on the active filter
+    val selectedRecords = remember(
+        records,
+        searchResults,
+        isSearchActive,
+        selectedDate
+    ) {
+        if (isSearchActive) {
+            searchResults
+        } else {
+            records.filter { it.dateIso == selectedDate }
+        }
+    }
 
     Column(
         modifier = Modifier
@@ -145,7 +165,53 @@ fun HealthRecordsScreen(
             }
         }
 
-        // Calendar Date Selector
+        // Search by Date
+        OutlinedTextField(
+            value = searchDateInput,
+            onValueChange = {
+                searchDateInput = it
+            },
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 23.dp)
+                .padding(top = 20.dp),
+            placeholder = {
+                Text(
+                    text = "Search date (yyyy-MM-dd)",
+                    color = SecondaryColor
+                )
+            },
+            singleLine = true,
+            shape = RoundedCornerShape(50.dp),
+            trailingIcon = {
+                IconButton(
+                    onClick = {
+                        if (searchDateInput.isNotBlank()) {
+                            val date = searchDateInput.trim()
+
+                            selectedDate = date
+                            isSearchActive = true
+
+                            onSearchByDate(date)
+                        }
+                    }
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.Search,
+                        contentDescription = "Search health records",
+                        tint = SecondaryColor
+                    )
+                }
+            },
+            colors = OutlinedTextFieldDefaults.colors(
+                unfocusedContainerColor = Color.White,
+                focusedContainerColor = Color.White,
+                unfocusedBorderColor = Color.Transparent,
+                focusedBorderColor = Color.Transparent
+            )
+        )
+
+        // Dynamic Calendar Date Selector
         LazyRow(
             modifier = Modifier
                 .fillMaxWidth()
@@ -153,13 +219,30 @@ fun HealthRecordsScreen(
             contentPadding = PaddingValues(horizontal = 32.dp),
             horizontalArrangement = Arrangement.spacedBy(8.dp)
         ) {
-            items(calendarDays) { day ->
+            items(calendarDays) { date ->
+
+                val parsedDate = dateFormatter.parse(date) ?: Date()
+
+                val calendarDay = CalendarDay(
+                    day = SimpleDateFormat(
+                        "EEE",
+                        Locale.US
+                    ).format(parsedDate),
+
+                    date = SimpleDateFormat(
+                        "d",
+                        Locale.US
+                    ).format(parsedDate),
+
+                    hasRecord = date in availableRecordDates
+                )
+
                 DateSelectorItem(
-                    day = day,
-                    selected = selectedDate == day.date,
+                    day = calendarDay,
+                    selected = selectedDate == date,
                     onClick = {
-                        selectedDate = day.date
-                        onDateSelected(day.date)
+                        selectedDate = date
+                        onDateSelected(date)
                     }
                 )
             }
@@ -178,7 +261,7 @@ fun HealthRecordsScreen(
             verticalAlignment = Alignment.CenterVertically
         ) {
             Text(
-                text = "Saved Records",
+                text = if (isSearchActive) "Search Results" else "Saved Records",
                 fontSize = 17.sp,
                 fontWeight = FontWeight.Bold,
                 color = HeadingColor
@@ -196,7 +279,7 @@ fun HealthRecordsScreen(
                     )
             ) {
                 Text(
-                    text = if (showEmptyDemo) "0 records" else "3 records",
+                    text = "${selectedRecords.size} records",
                     fontSize = 10.sp,
                     fontWeight = FontWeight.SemiBold,
                     color = Color(0xFF29466D)
@@ -205,23 +288,29 @@ fun HealthRecordsScreen(
 
             Spacer(modifier = Modifier.weight(1f))
 
-            Text(
-                text = if (showEmptyDemo) "Show Records" else "Show Empty Demo",
-                fontSize = 11.sp,
-                fontWeight = FontWeight.Medium,
-                color = PrimaryBlue,
-                modifier = Modifier.clickable {
-                    showEmptyDemo = !showEmptyDemo
+            if (isSearchActive) {
+                TextButton(
+                    onClick = onClearSearch
+                ) {
+                    Text(
+                        text = "Clear",
+                        color = PrimaryBlue,
+                        fontSize = 12.sp,
+                        fontWeight = FontWeight.SemiBold
+                    )
                 }
-            )
+            }
         }
 
-        // Records / Empty State
-        if (showEmptyDemo) {
+        // Selected Date Records / Empty State
+        if (selectedRecords.isEmpty()) {
+
             EmptyRecordsState(
                 modifier = Modifier.weight(1f)
             )
+
         } else {
+
             LazyColumn(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -234,9 +323,10 @@ fun HealthRecordsScreen(
                 verticalArrangement = Arrangement.spacedBy(16.dp)
             ) {
                 items(
-                    items = sampleRecords,
+                    items = selectedRecords,
                     key = { it.id }
                 ) { record ->
+
                     HealthRecordCard(
                         record = record,
                         onEditClick = {
@@ -301,8 +391,12 @@ private fun DateSelectorItem(
             modifier = Modifier
                 .size(6.dp)
                 .background(
-                    if (selected) Color.White else Color(0xFFD5E3F8),
-                    CircleShape
+                    color = when {
+                        selected -> Color.White
+                        day.hasRecord -> Color(0xFF0052CC)
+                        else -> Color(0xFFD5E3F8)
+                    },
+                    shape = CircleShape
                 )
         )
     }

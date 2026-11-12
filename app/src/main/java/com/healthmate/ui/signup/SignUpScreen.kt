@@ -26,7 +26,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
-import androidx.compose.ui.text.style.TextAlign
+//import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 
@@ -41,7 +41,8 @@ fun SignUpScreen(
     onSignUpClick: (String, String, String) -> Unit,
     onSignInClick: () -> Unit,
     onTermsClick: () -> Unit,
-    onPrivacyClick: () -> Unit
+    onPrivacyClick: () -> Unit,
+    errorMessage: String? = null
 ) {
     var fullName by remember { mutableStateOf("") }
     var email by remember { mutableStateOf("") }
@@ -51,6 +52,8 @@ fun SignUpScreen(
     var passwordVisible by remember { mutableStateOf(false) }
     var confirmPasswordVisible by remember { mutableStateOf(false) }
     var termsAccepted by remember { mutableStateOf(false) }
+
+    var validationError by remember {mutableStateOf<String?>(null)}
 
     Column(
         modifier = Modifier
@@ -66,7 +69,7 @@ fun SignUpScreen(
         Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(top = 56.dp),
+                .padding(top = 25.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             Box(
@@ -115,7 +118,7 @@ fun SignUpScreen(
         Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(top = 38.dp)
+                .padding(top = 22.dp)
         ) {
 
             Text(
@@ -131,7 +134,7 @@ fun SignUpScreen(
                 color = SecondaryColor
             )
 
-            Spacer(modifier = Modifier.height(27.dp))
+            Spacer(modifier = Modifier.height(18.dp))
 
             // Full Name
             SignUpField(
@@ -150,7 +153,7 @@ fun SignUpScreen(
                 keyboardType = KeyboardType.Text
             )
 
-            Spacer(modifier = Modifier.height(20.dp))
+            Spacer(modifier = Modifier.height(14.dp))
 
             // Email Address
             SignUpField(
@@ -169,7 +172,7 @@ fun SignUpScreen(
                 keyboardType = KeyboardType.Email
             )
 
-            Spacer(modifier = Modifier.height(20.dp))
+            Spacer(modifier = Modifier.height(14.dp))
 
             // Password
             SignUpField(
@@ -209,7 +212,7 @@ fun SignUpScreen(
                 }
             )
 
-            Spacer(modifier = Modifier.height(20.dp))
+            Spacer(modifier = Modifier.height(14.dp))
 
             // Confirm Password
             SignUpField(
@@ -250,11 +253,24 @@ fun SignUpScreen(
                 }
             )
 
+            val displayedError = validationError ?: errorMessage
+
+            if (displayedError != null) {
+                Text(
+                    text = displayedError,
+                    color = Color(0xFFDC2626),
+                    fontSize = 13.sp,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(top = 8.dp)
+                )
+            }
+
             // Terms and Privacy Agreement
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(top = 10.dp),
+                    .padding(top = 7.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Checkbox(
@@ -306,12 +322,16 @@ fun SignUpScreen(
                 )
             }
 
-            Spacer(modifier = Modifier.height(15.dp))
+            Spacer(modifier = Modifier.height(10.dp))
 
             // Sign Up Button
             Button(
                 onClick = {
-                    if (termsAccepted) {
+                    validationError = null
+
+                    if (password != confirmPassword) {
+                        validationError = "Passwords do not match."
+                    } else {
                         onSignUpClick(
                             fullName.trim(),
                             email.trim(),
