@@ -31,11 +31,9 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.material3.MaterialTheme
 
-private val NavigationBlue = Color(0xFF2563EB)
-private val SelectedBackground = Color(0xFFEEF5FF)
-private val NavigationBorder = Color(0xFFE2EAF7)
-private val NavigationWhite = Color.White
+
 
 enum class HealthMateDestination(
     val label: String,
@@ -43,7 +41,7 @@ enum class HealthMateDestination(
 ) {
     DASHBOARD("Home", Icons.Default.Home),
     HEALTH_RECORDS("Records", Icons.Default.Description),
-    COMMUNITIES("Community", Icons.Default.Groups),
+    COMMUNITIES("Group", Icons.Default.Groups),
     PROFILE("Profile", Icons.Default.Person)
 }
 
@@ -64,12 +62,12 @@ fun AnimatedBottomNavigationBar(
                 spotColor = Color(0xFF9DB4D5).copy(alpha = 0.20f)
             )
             .background(
-                color = NavigationWhite,
+                color = MaterialTheme.colorScheme.surface,
                 shape = CircleShape
             )
             .border(
                 width = 1.dp,
-                color = NavigationBorder,
+                color = MaterialTheme.colorScheme.outlineVariant,
                 shape = CircleShape
             )
             .padding(horizontal = 8.dp, vertical = 8.dp),
@@ -126,7 +124,7 @@ private fun NavigationItem(
         modifier = modifier
             .background(
                 color = if (selected) {
-                    SelectedBackground
+                    MaterialTheme.colorScheme.primaryContainer
                 } else {
                     Color.Transparent
                 },
@@ -141,10 +139,11 @@ private fun NavigationItem(
         Icon(
             imageVector = destination.icon,
             contentDescription = destination.label,
-            tint = NavigationBlue,
-            modifier = Modifier.size(
-                (23f * iconScale.value).dp
-            )
+            tint = if (selected) {
+                MaterialTheme.colorScheme.primary
+            } else {
+                MaterialTheme.colorScheme.onSurfaceVariant
+            },
         )
 
         AnimatedVisibility(
@@ -167,7 +166,7 @@ private fun NavigationItem(
                     text = destination.label,
                     fontSize = 13.sp,
                     fontWeight = FontWeight.SemiBold,
-                    color = NavigationBlue,
+                    color = MaterialTheme.colorScheme.primary,
                     maxLines = 1
                 )
             }

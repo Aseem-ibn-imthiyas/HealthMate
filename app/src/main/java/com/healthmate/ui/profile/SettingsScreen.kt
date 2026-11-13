@@ -21,6 +21,14 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.healthmate.R
+import android.Manifest
+import android.content.pm.PackageManager
+import android.os.Build
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.ui.res.stringResource
 
 private val SettingsBackground = Color(0xFFF7F8FF)
 private val SettingsBlue = Color(0xFF0755D9)
@@ -30,6 +38,10 @@ private val SettingsDivider = Color(0xFFE8EEFA)
 
 @Composable
 fun SettingsScreen(
+    userFullName: String = "",
+    userEmail: String = "",
+    userProfileImageUri: String? = null,
+    darkModeEnabled: Boolean = false,
     onManageProfileClick: () -> Unit = {},
     onSecurityClick: () -> Unit = {},
     onTermsClick: () -> Unit = {},
@@ -38,26 +50,38 @@ fun SettingsScreen(
     onLanguageChanged: () -> Unit = {},
     selectedLanguage: String = "English",
     onDarkModeChanged: (Boolean) -> Unit = {},
+    initialNotificationsEnabled: Boolean = false,
     onNotificationsChanged: (Boolean) -> Unit = {},
     modifier: Modifier = Modifier
 ) {
 
-    var notificationsEnabled by remember {
-        mutableStateOf(false)
-    }
-
-    var darkModeEnabled by remember {
-        mutableStateOf(false)
+    var notificationsEnabled by remember(initialNotificationsEnabled) {
+        mutableStateOf(initialNotificationsEnabled)
     }
 
     var showLogoutDialog by remember {
         mutableStateOf(false)
     }
 
+    val context = LocalContext.current
+
+    val notificationPermissionLauncher =
+        rememberLauncherForActivityResult(
+            contract = ActivityResultContracts.RequestPermission()
+        ) { granted ->
+            notificationsEnabled = granted
+
+            if (granted) {
+                onNotificationsChanged(true)
+            } else {
+                onNotificationsChanged(false)
+            }
+        }
+
     Column(
         modifier = modifier
             .fillMaxSize()
-            .background(SettingsBackground)
+            .background(MaterialTheme.colorScheme.background)
             .statusBarsPadding()
     ) {
 
@@ -71,16 +95,16 @@ fun SettingsScreen(
             )
         ) {
             Text(
-                text = "Settings",
+                text = stringResource(R.string.settings),
                 fontSize = 21.sp,
                 fontWeight = FontWeight.Bold,
-                color = SettingsHeading
+                color = MaterialTheme.colorScheme.onSurfaceVariant
             )
 
             Text(
-                text = "Manage & Modify Account",
+                text = stringResource(R.string.settings_manage_modify_account),
                 fontSize = 12.sp,
-                color = SettingsSecondary
+                color = MaterialTheme.colorScheme.onSurfaceVariant
             )
         }
 
@@ -96,18 +120,24 @@ fun SettingsScreen(
         ) {
 
             // Profile Summary Card
-            ProfileSummaryCard()
+            ProfileSummaryCard(
+                fullName = userFullName,
+                email = userEmail,
+                profileImageUri = userProfileImageUri
+            )
 
             Spacer(modifier = Modifier.height(22.dp))
 
             // Account
-            SettingsSection(title = "ACCOUNT") {
+            SettingsSection(
+                title = stringResource(R.string.settings_account)
+            ) {
 
                 SettingsGroup {
                     SettingsItem(
                         icon = Icons.Default.PersonOutline,
-                        title = "Manage Profile",
-                        subtitle = "Personal information",
+                        title = stringResource(R.string.settings_manage_profile),
+                        subtitle = stringResource(R.string.settings_personal_information),
                         onClick = onManageProfileClick
                     )
 
@@ -115,8 +145,8 @@ fun SettingsScreen(
 
                     SettingsItem(
                         icon = Icons.Default.Security,
-                        title = "Security & Privacy",
-                        subtitle = "Account security",
+                        title = stringResource(R.string.settings_security_privacy),
+                        subtitle = stringResource(R.string.settings_account_security),
                         onClick = onSecurityClick
                     )
                 }
@@ -125,33 +155,56 @@ fun SettingsScreen(
             Spacer(modifier = Modifier.height(22.dp))
 
             // Preferences
-            SettingsSection(title = "PREFERENCES") {
+            SettingsSection(
+                title = stringResource(R.string.settings_preferences)
+            ) {
 
                 SettingsGroup {
 
                     SettingsToggleItem(
                         icon = Icons.Default.NotificationsNone,
-                        title = "Notifications",
-                        subtitle = "Push & alerts",
+                        title = stringResource(R.string.settings_notifications),
+                        subtitle = stringResource(R.string.settings_push_alerts),
                         checked = notificationsEnabled,
-                        onCheckedChange = {
-                            notificationsEnabled = it
-                            onNotificationsChanged(it)
+                        onCheckedChange = { enabled ->
+
+                            if (enabled && Build.VERSION.SDK_INT >= 33) {
+
+                                if (
+                                    context.checkSelfPermission(
+                                        Manifest.permission.POST_NOTIFICATIONS
+                                    ) == PackageManager.PERMISSION_GRANTED
+                                ) {
+                                    notificationsEnabled = true
+                                    onNotificationsChanged(true)
+
+                                } else {
+                                    notificationPermissionLauncher.launch(
+                                        Manifest.permission.POST_NOTIFICATIONS
+                                    )
+                                }
+
+                            } else {
+                                notificationsEnabled = enabled
+                                onNotificationsChanged(enabled)
+                            }
                         }
                     )
 
                     SettingsDivider()
 
+
                     SettingsToggleItem(
                         icon = Icons.Default.DarkMode,
-                        title = "Dark Mode",
-                        subtitle = "Match system theme",
+                        title = stringResource(R.string.settings_dark_mode),
+                        subtitle = stringResource(R.string.settings_match_system_theme),
                         checked = darkModeEnabled,
-                        onCheckedChange = {
-                            darkModeEnabled = it
-                            onDarkModeChanged(it)
+                        onCheckedChange = { enabled ->
+                            //darkModeEnabled = enabled
+                            onDarkModeChanged(enabled)
                         }
                     )
+
 
                     SettingsDivider()
 
@@ -159,8 +212,8 @@ fun SettingsScreen(
 
                         SettingsItem(
                             icon = Icons.Default.Language,
-                            title = "Language",
-                            subtitle = "App language",
+                            title = stringResource(R.string.settings_language),
+                            subtitle = stringResource(R.string.settings_app_language),
                             trailingContent = {
                                 Row(
                                     verticalAlignment = Alignment.CenterVertically
@@ -168,10 +221,10 @@ fun SettingsScreen(
                                     Text(
                                         text = selectedLanguage,
                                         fontSize = 11.sp,
-                                        color = SettingsBlue,
+                                        color = MaterialTheme.colorScheme.primary,
                                         modifier = Modifier
                                             .clip(CircleShape)
-                                            .background(Color(0xFFE7F0FF))
+                                            .background(MaterialTheme.colorScheme.surface)
                                             .padding(
                                                 horizontal = 12.dp,
                                                 vertical = 7.dp
@@ -183,7 +236,7 @@ fun SettingsScreen(
                                     Icon(
                                         imageVector = Icons.Default.ChevronRight,
                                         contentDescription = null,
-                                        tint = SettingsSecondary
+                                        tint = MaterialTheme.colorScheme.onSurfaceVariant
                                     )
                                 }
                             },
@@ -197,14 +250,16 @@ fun SettingsScreen(
             Spacer(modifier = Modifier.height(22.dp))
 
             // Support
-            SettingsSection(title = "SUPPORT") {
+            SettingsSection(
+                title = stringResource(R.string.settings_support)
+            ) {
 
                 SettingsGroup {
 
                     SettingsItem(
                         icon = Icons.Default.Policy,
-                        title = "Terms & Policies",
-                        subtitle = "Privacy & terms of service",
+                        title = stringResource(R.string.settings_terms_policies),
+                        subtitle = stringResource(R.string.settings_privacy_terms),
                         onClick = onTermsClick
                     )
 
@@ -212,8 +267,8 @@ fun SettingsScreen(
 
                     SettingsItem(
                         icon = Icons.Default.Info,
-                        title = "About HealthMate",
-                        subtitle = "Mission & release notes",
+                        title = stringResource(R.string.settings_about_healthmate),
+                        subtitle = stringResource(R.string.settings_mission_release_notes),
                         onClick = onAboutClick
                     )
                 }
@@ -226,7 +281,7 @@ fun SettingsScreen(
                 modifier = Modifier
                     .fillMaxWidth()
                     .clip(RoundedCornerShape(28.dp))
-                    .background(Color.White)
+                    .background(MaterialTheme.colorScheme.surface)
                     .clickable {
                         showLogoutDialog = true
                     }
@@ -246,22 +301,22 @@ fun SettingsScreen(
                     modifier = Modifier.weight(1f)
                 ) {
                     Text(
-                        text = "Log Out",
+                        text = stringResource(R.string.settings_logout),
                         fontSize = 15.sp,
                         fontWeight = FontWeight.Bold,
                         color = Color(0xFFDC2626)
                     )
 
                     Text(
-                        text = "Sign out of your HealthMate account",
+                        text = stringResource(R.string.settings_logout_description),
                         fontSize = 11.sp,
-                        color = SettingsSecondary
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                 }
 
                 Icon(
                     Icons.Default.ArrowForward,
-                    contentDescription = "Log out",
+                    contentDescription = stringResource(R.string.settings_logout_accessibility),
                     tint = Color(0xFFEF4444)
                 )
             }
@@ -279,16 +334,16 @@ fun SettingsScreen(
                 Icon(
                     Icons.Default.FavoriteBorder,
                     contentDescription = null,
-                    tint = SettingsBlue,
+                    tint = MaterialTheme.colorScheme.primary,
                     modifier = Modifier.size(15.dp)
                 )
 
                 Spacer(modifier = Modifier.width(6.dp))
 
                 Text(
-                    text = "HealthMate • Version 1.0.0",
+                    text = stringResource(R.string.settings_app_version),
                     fontSize = 12.sp,
-                    color = SettingsSecondary
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
             }
         }
@@ -310,13 +365,13 @@ fun SettingsScreen(
             },
             title = {
                 Text(
-                    text = "Log Out?",
+                    text = stringResource(R.string.settings_logout_confirmation_title),
                     fontWeight = FontWeight.Bold
                 )
             },
             text = {
                 Text(
-                    text = "Are you sure you want to log out of HealthMate?"
+                    text = stringResource(R.string.settings_logout_confirmation_message)
                 )
             },
             confirmButton = {
@@ -327,7 +382,7 @@ fun SettingsScreen(
                     }
                 ) {
                     Text(
-                        "Log Out",
+                        stringResource(R.string.settings_logout),
                         color = Color(0xFFDC2626)
                     )
                 }
@@ -338,7 +393,7 @@ fun SettingsScreen(
                         showLogoutDialog = false
                     }
                 ) {
-                    Text("Cancel")
+                    Text(stringResource(R.string.settings_cancel))
                 }
             },
             containerColor = Color.White
@@ -347,20 +402,30 @@ fun SettingsScreen(
 }
 
 @Composable
-private fun ProfileSummaryCard() {
+private fun ProfileSummaryCard(
+    fullName: String,
+    email: String,
+    profileImageUri: String?
+) {
 
     Column(
         modifier = Modifier
             .fillMaxWidth()
             .clip(RoundedCornerShape(20.dp))
-            .background(Color.White)
+            .background(MaterialTheme.colorScheme.surface)
             .padding(vertical = 24.dp),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
 
         Image(
-            painter = painterResource(R.drawable.profile_avatar),
-            contentDescription = "Profile picture",
+            painter = if (!profileImageUri.isNullOrBlank()) {
+                coil.compose.rememberAsyncImagePainter(
+                    model = profileImageUri
+                )
+            } else {
+                painterResource(R.drawable.profile_avatar)
+            },
+            contentDescription = stringResource(R.string.profile_picture),
             modifier = Modifier
                 .size(64.dp)
                 .clip(CircleShape),
@@ -370,16 +435,18 @@ private fun ProfileSummaryCard() {
         Spacer(modifier = Modifier.height(9.dp))
 
         Text(
-            text = "Mohamed Aseem",
+            text = fullName.ifBlank {
+                stringResource(R.string.healthmate_user)
+            },
             fontSize = 17.sp,
             fontWeight = FontWeight.Bold,
-            color = Color(0xFF20447F)
+            color = MaterialTheme.colorScheme.onSurface
         )
 
         Text(
-            text = "Aseem@mail.com",
+            text = email,
             fontSize = 12.sp,
-            color = SettingsSecondary
+            color = MaterialTheme.colorScheme.onSurfaceVariant
         )
     }
 }
@@ -395,7 +462,7 @@ private fun SettingsSection(
             text = title,
             fontSize = 11.sp,
             fontWeight = FontWeight.Medium,
-            color = SettingsSecondary,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
             modifier = Modifier.padding(
                 start = 4.dp,
                 bottom = 9.dp
@@ -414,7 +481,7 @@ private fun SettingsGroup(
         modifier = Modifier
             .fillMaxWidth()
             .clip(RoundedCornerShape(28.dp))
-            .background(Color.White)
+            .background(MaterialTheme.colorScheme.surface)
             .padding(horizontal = 16.dp),
         content = content
     )
@@ -438,8 +505,8 @@ private fun SettingsItem(
 
         SettingsIcon(
             icon = icon,
-            background = Color(0xFFE6EEFF),
-            tint = SettingsBlue
+            background = MaterialTheme.colorScheme.surfaceVariant,
+            tint = MaterialTheme.colorScheme.primary
         )
 
         Spacer(modifier = Modifier.width(12.dp))
@@ -451,13 +518,13 @@ private fun SettingsItem(
                 text = title,
                 fontSize = 14.sp,
                 fontWeight = FontWeight.Medium,
-                color = SettingsHeading
+                color = MaterialTheme.colorScheme.onSurface
             )
 
             Text(
                 text = subtitle,
                 fontSize = 11.sp,
-                color = SettingsSecondary
+                color = MaterialTheme.colorScheme.onSurfaceVariant
             )
         }
 
@@ -467,7 +534,7 @@ private fun SettingsItem(
             Icon(
                 Icons.Default.ChevronRight,
                 contentDescription = null,
-                tint = SettingsSecondary,
+                tint = MaterialTheme.colorScheme.onSurfaceVariant,
                 modifier = Modifier.size(20.dp)
             )
         }
@@ -491,8 +558,8 @@ private fun SettingsToggleItem(
 
         SettingsIcon(
             icon = icon,
-            background = Color(0xFFE6EEFF),
-            tint = SettingsBlue
+            background = MaterialTheme.colorScheme.surfaceVariant,
+            tint = MaterialTheme.colorScheme.primary
         )
 
         Spacer(modifier = Modifier.width(12.dp))
@@ -504,13 +571,13 @@ private fun SettingsToggleItem(
                 text = title,
                 fontSize = 14.sp,
                 fontWeight = FontWeight.Medium,
-                color = SettingsHeading
+                color = MaterialTheme.colorScheme.onSurface
             )
 
             Text(
                 text = subtitle,
                 fontSize = 11.sp,
-                color = SettingsSecondary
+                color = MaterialTheme.colorScheme.onSurfaceVariant
             )
         }
 
@@ -519,11 +586,11 @@ private fun SettingsToggleItem(
             onCheckedChange = onCheckedChange,
             modifier = Modifier.height(34.dp),
             colors = SwitchDefaults.colors(
-                checkedThumbColor = Color.White,
-                checkedTrackColor = SettingsBlue,
-                uncheckedThumbColor = Color.White,
-                uncheckedTrackColor = Color(0xFFDCE7FF),
-                uncheckedBorderColor = Color(0xFFDCE7FF)
+                checkedThumbColor = MaterialTheme.colorScheme.onPrimary,
+                checkedTrackColor = MaterialTheme.colorScheme.primary,
+                uncheckedThumbColor = MaterialTheme.colorScheme.outline,
+                uncheckedTrackColor = MaterialTheme.colorScheme.surfaceVariant,
+                uncheckedBorderColor = MaterialTheme.colorScheme.outline
             )
         )
     }

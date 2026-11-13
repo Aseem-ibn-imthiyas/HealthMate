@@ -31,6 +31,19 @@ import coil.compose.AsyncImage
 import com.healthmate.R
 import com.healthmate.ui.communities.model.CommunityPostUiModel
 import com.healthmate.ui.communities.model.CommunityUiModel
+import android.content.Intent
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material.icons.filled.Edit
+import androidx.compose.material.icons.filled.Delete
+import com.healthmate.ui.communities.EditCommunityPostScreen
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.TextButton
 
 private val FeedBackground = Color(0xFFF7F8FF)
 private val FeedBlue = Color(0xFF0755D9)
@@ -68,18 +81,27 @@ private val samplePosts = listOf(
 
 @Composable
 fun ViewCommunityScreen(
+    onEditPost: (Int, String, String?) -> Unit = { _, _, _ -> },
+    onDeletePost: (Int) -> Unit = {},
+    userName: String = "User",
+    userProfileImageUri: String? = null,
+    communityPosts: List<CommunityPostUiModel> = emptyList(),
+    onLikePostClick: (Int) -> Unit = {},
+    memberCount: Int = 0,
     community: CommunityUiModel,
     onBackClick: () -> Unit,
     onPhotoClick: () -> Unit = {},
-    onSharePost: (String) -> Unit = {},
+    onSharePost: (String, String?) -> Unit,
     onCommentClick: (CommunityPostUiModel) -> Unit = {},
     onSharePostClick: (CommunityPostUiModel) -> Unit = {},
     onNotificationChanged: (Boolean) -> Unit = {},
-    modifier: Modifier = Modifier
+    isJoined: Boolean = false,
+    onJoinCommunityClick: () -> Unit = {},
+    onLeaveCommunityClick: () -> Unit = {},
+    modifier: Modifier = Modifier,
+    currentUserId: Int = 0
 ) {
-    var isJoined by remember {
-        mutableStateOf(true)
-    }
+
 
     var notificationsEnabled by remember {
         mutableStateOf(false)
@@ -97,18 +119,36 @@ fun ViewCommunityScreen(
         mutableStateOf(false)
     }
 
-    var posts by remember {
-        mutableStateOf(samplePosts)
-    }
-
     var attachedPhoto by remember {
         mutableStateOf<android.net.Uri?>(null)
     }
 
+    var selectedPostToEdit by remember {
+        mutableStateOf<CommunityPostUiModel?>(null)
+    }
+
+    var selectedPostToDelete by remember {
+        mutableStateOf<CommunityPostUiModel?>(null)
+    }
+
+    val context = LocalContext.current
+
     val photoPicker = rememberLauncherForActivityResult(
-        contract = ActivityResultContracts.GetContent()
+        contract = ActivityResultContracts.OpenDocument()
     ) { uri ->
-        attachedPhoto = uri
+        if (uri != null) {
+            try {
+                context.contentResolver.takePersistableUriPermission(
+                    uri,
+                    Intent.FLAG_GRANT_READ_URI_PERMISSION
+                )
+
+                attachedPhoto = uri
+
+            } catch (e: SecurityException) {
+                e.printStackTrace()
+            }
+        }
     }
 
     Column(
@@ -164,16 +204,21 @@ fun ViewCommunityScreen(
             // Community Header
             item {
                 CommunityHeroCard(
+                    memberCount = memberCount,
                     community = community,
                     isJoined = isJoined,
                     notificationsEnabled = notificationsEnabled,
                     onJoinClick = {
-                        isJoined = !isJoined
+                        if (isJoined) {
+                            onLeaveCommunityClick()
+                        } else {
+                            onJoinCommunityClick()
+                        }
                     },
                     onNotificationClick = {
                         notificationsEnabled = !notificationsEnabled
                         onNotificationChanged(notificationsEnabled)
-                    }
+                    },
                 )
             }
 
@@ -185,8 +230,10 @@ fun ViewCommunityScreen(
                         postText = it
                     },
                     attachedPhoto = attachedPhoto,
+                    userName = userName,
+                    userProfileImageUri = userProfileImageUri,
                     onPhotoClick = {
-                        photoPicker.launch("image/*")
+                        photoPicker.launch(arrayOf("image/*"))
                         onPhotoClick()
                     },
                     onGoalClick = {
@@ -198,7 +245,12 @@ fun ViewCommunityScreen(
                     },
                     onShareClick = {
                         if (postText.isNotBlank() || attachedPhoto != null) {
-                            onSharePost(postText)
+
+                            onSharePost(
+                                postText,
+                                attachedPhoto?.toString()
+                            )
+
                             postText = ""
                             attachedPhoto = null
                         }
@@ -281,41 +333,107 @@ fun ViewCommunityScreen(
 
             // Feed Posts
             items(
-                items = posts,
+                items = communityPosts,
                 key = { it.id }
             ) { post ->
                 CommunityFeedPost(
                     post = post,
                     onLikeClick = {
-                        posts = posts.map {
-                            if (it.id == post.id) {
-                                it.copy(
-                                    isLiked = !it.isLiked,
-                                    likes = if (it.isLiked) {
-                                        it.likes - 1
-                                    } else {
-                                        it.likes + 1
-                                    }
-                                )
-                            } else it
-                        }
+                        onLikePostClick(post.id)
                     },
+                    currentUserId = currentUserId,
                     onCommentClick = {
                         onCommentClick(post)
                     },
                     onShareClick = {
                         onSharePostClick(post)
+                    },
+                    onEditClick = {
+                        selectedPostToEdit = post
+                    },
+                    onDeleteClick = {
+                        selectedPostToDelete = post
                     }
+
                 )
             }
         }
     }
+
+    selectedPostToEdit?.let { post ->
+
+        EditCommunityPostScreen(
+            initialContent = post.content,
+            initialImageUri = post.postImageUri,
+
+            onDismiss = {
+                selectedPostToEdit = null
+            },
+
+            onSavePost = { updatedContent, updatedImageUri ->
+
+                onEditPost(
+                    post.id,
+                    updatedContent,
+                    updatedImageUri
+                )
+
+                selectedPostToEdit = null
+            }
+        )
+    }
+
+    selectedPostToDelete?.let { post ->
+        AlertDialog(
+            onDismissRequest = {
+                selectedPostToDelete = null
+            },
+            title = {
+                Text(
+                    text = "Delete Post?",
+                    color = FeedHeading
+                )
+            },
+            text = {
+                Text(
+                    text = "Are you sure you want to delete this post? This action cannot be undone.",
+                    color = FeedSecondary
+                )
+            },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        onDeletePost(post.id)
+                        selectedPostToDelete = null
+                    }
+                ) {
+                    Text(
+                        text = "Delete",
+                        color = Color(0xFFE04444)
+                    )
+                }
+            },
+            dismissButton = {
+                TextButton(
+                    onClick = {
+                        selectedPostToDelete = null
+                    }
+                ) {
+                    Text("Cancel")
+                }
+            },
+            containerColor = Color.White
+        )
+    }
 }
+
+
 
 @Composable
 private fun CommunityHeroCard(
     community: CommunityUiModel,
     isJoined: Boolean,
+    memberCount: Int = 0,
     notificationsEnabled: Boolean,
     onJoinClick: () -> Unit,
     onNotificationClick: () -> Unit
@@ -438,14 +556,14 @@ private fun CommunityHeroCard(
                     modifier = Modifier.weight(1f)
                 ) {
                     Text(
-                        text = "12,450",
+                        text = memberCount.toString(),
                         fontSize = 18.sp,
                         fontWeight = FontWeight.Bold,
                         color = FeedHeading
                     )
 
                     Text(
-                        text = "Active Members",
+                        text = "Total Members",
                         fontSize = 10.sp,
                         color = FeedSecondary
                     )
@@ -470,7 +588,7 @@ private fun CommunityHeroCard(
                     Spacer(modifier = Modifier.width(6.dp))
 
                     Text(
-                        text = "420 active now",
+                        text = "Community Members",
                         fontSize = 10.sp,
                         color = FeedHeading
                     )
@@ -534,6 +652,8 @@ private fun CommunityHeroCard(
 
 @Composable
 private fun CommunityPostComposer(
+    userName: String = "User",
+    userProfileImageUri: String? = null,
     postText: String,
     onPostTextChange: (String) -> Unit,
     attachedPhoto: android.net.Uri?,
@@ -552,20 +672,31 @@ private fun CommunityPostComposer(
         Row(
             verticalAlignment = Alignment.CenterVertically
         ) {
-            Image(
-                painter = painterResource(R.drawable.profile_avatar),
-                contentDescription = "User profile",
-                modifier = Modifier
-                    .size(48.dp)
-                    .clip(CircleShape),
-                contentScale = ContentScale.Crop
-            )
+            if (!userProfileImageUri.isNullOrBlank()) {
+                AsyncImage(
+                    model = userProfileImageUri,
+                    contentDescription = "User profile",
+                    modifier = Modifier
+                        .size(48.dp)
+                        .clip(CircleShape),
+                    contentScale = ContentScale.Crop
+                )
+            } else {
+                Image(
+                    painter = painterResource(R.drawable.profile_avatar),
+                    contentDescription = "User profile",
+                    modifier = Modifier
+                        .size(48.dp)
+                        .clip(CircleShape),
+                    contentScale = ContentScale.Crop
+                )
+            }
 
             Spacer(modifier = Modifier.width(11.dp))
 
             Column {
                 Text(
-                    text = "Mohamed Aseem",
+                    text = userName,
                     fontSize = 16.sp,
                     fontWeight = FontWeight.Bold,
                     color = FeedHeading
@@ -713,10 +844,17 @@ private fun CommunityPostComposer(
 @Composable
 private fun CommunityFeedPost(
     post: CommunityPostUiModel,
+    currentUserId: Int,
     onLikeClick: () -> Unit,
     onCommentClick: () -> Unit,
-    onShareClick: () -> Unit
+    onShareClick: () -> Unit,
+    onEditClick: () -> Unit,
+    onDeleteClick: () -> Unit
 ) {
+    var showPostOptions by remember {
+        mutableStateOf(false)
+    }
+
     Column(
         modifier = Modifier
             .fillMaxWidth()
@@ -734,12 +872,23 @@ private fun CommunityFeedPost(
                     .background(Color(0xFFD9E7FA), CircleShape),
                 contentAlignment = Alignment.Center
             ) {
-                Text(
-                    text = post.authorInitials,
-                    fontSize = 14.sp,
-                    fontWeight = FontWeight.Bold,
-                    color = Color(0xFF365D9B)
-                )
+                if (!post.authorProfileImageUri.isNullOrBlank()) {
+                    AsyncImage(
+                        model = post.authorProfileImageUri,
+                        contentDescription = "Author profile image",
+                        contentScale = ContentScale.Crop,
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .clip(CircleShape)
+                    )
+                } else {
+                    Text(
+                        text = post.authorInitials,
+                        fontSize = 14.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = Color(0xFF365D9B)
+                    )
+                }
             }
 
             Spacer(modifier = Modifier.width(12.dp))
@@ -761,15 +910,63 @@ private fun CommunityFeedPost(
                 )
             }
 
-            IconButton(
-                onClick = {},
-                modifier = Modifier.size(30.dp)
-            ) {
-                Icon(
-                    Icons.Default.MoreHoriz,
-                    contentDescription = "More post options",
-                    tint = FeedSecondary
-                )
+            Box {
+                IconButton(
+                    onClick = {
+                        showPostOptions = true
+                    },
+                    modifier = Modifier.size(30.dp)
+                ) {
+                    Icon(
+                        Icons.Default.MoreHoriz,
+                        contentDescription = "More post options",
+                        tint = FeedSecondary
+                    )
+                }
+
+                DropdownMenu(
+                    expanded = showPostOptions,
+                    onDismissRequest = {
+                        showPostOptions = false
+                    }
+                ) {
+                    if (post.userId == currentUserId) {
+                        DropdownMenuItem(
+                            text = { Text("Edit Post") },
+                            leadingIcon = {
+                                Icon(
+                                    Icons.Default.Edit,
+                                    contentDescription = null
+                                )
+                            },
+                            onClick = {
+                                showPostOptions = false
+                                onEditClick()
+                            }
+                        )
+
+                        DropdownMenuItem(
+                            text = { Text("Delete Post") },
+                            leadingIcon = {
+                                Icon(
+                                    Icons.Default.Delete,
+                                    contentDescription = null
+                                )
+                            },
+                            onClick = {
+                                showPostOptions = false
+                                onDeleteClick()
+                            }
+                        )
+                    } else {
+                        DropdownMenuItem(
+                            text = { Text("Report Post") },
+                            onClick = {
+                                showPostOptions = false
+                            }
+                        )
+                    }
+                }
             }
         }
 
@@ -781,6 +978,20 @@ private fun CommunityFeedPost(
             lineHeight = 22.sp,
             color = FeedHeading
         )
+
+        if (!post.postImageUri.isNullOrBlank()) {
+            Spacer(modifier = Modifier.height(10.dp))
+
+            AsyncImage(
+                model = post.postImageUri,
+                contentDescription = "Community post image",
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(200.dp)
+                    .clip(RoundedCornerShape(14.dp)),
+                contentScale = ContentScale.Crop
+            )
+        }
 
         if (post.activitySummary != null) {
             Spacer(modifier = Modifier.height(11.dp))

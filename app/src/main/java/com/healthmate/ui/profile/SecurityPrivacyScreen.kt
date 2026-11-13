@@ -25,6 +25,9 @@ import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.healthmate.ui.profile.model.LoginDeviceUiModel
+import androidx.compose.ui.res.stringResource
+import com.healthmate.R
+
 
 private val SecurityBlue = Color(0xFF0755D9)
 private val SecurityHeading = Color(0xFF102641)
@@ -40,6 +43,11 @@ fun SecurityPrivacyScreen(
         newPassword: String
     ) -> Unit,
     onSignOutDevice: (LoginDeviceUiModel) -> Unit,
+    sessionCreatedAt: String? = null,
+    isPasswordLoading: Boolean = false,
+    passwordErrorMessage: String? = null,
+    passwordSuccessMessage: String? = null,
+    onClearPasswordMessages: () -> Unit = {},
     modifier: Modifier = Modifier
 ) {
 
@@ -51,7 +59,9 @@ fun SecurityPrivacyScreen(
     var showNewPassword by remember { mutableStateOf(false) }
     var showConfirmPassword by remember { mutableStateOf(false) }
 
-    var validationMessage by remember { mutableStateOf<String?>(null) }
+    var validationMessageResId by remember {
+        mutableIntStateOf(0)
+    }
 
     var selectedDevice by remember {
         mutableStateOf<LoginDeviceUiModel?>(null)
@@ -66,27 +76,11 @@ fun SecurityPrivacyScreen(
             listOf(
                 LoginDeviceUiModel(
                     id = 1,
-                    deviceName = "Google Pixel 7",
-                    deviceDetails = "Android 14 • HealthMate v2.4",
-                    lastActive = "Active now",
+                    deviceName = "${android.os.Build.MANUFACTURER} ${android.os.Build.MODEL}",
+                    deviceDetails = "",
+                    lastActive = "",
                     location = "",
                     isCurrentDevice = true
-                ),
-                LoginDeviceUiModel(
-                    id = 2,
-                    deviceName = "Chrome on macOS",
-                    deviceDetails = "Last active 2 hours ago",
-                    lastActive = "Sign Out",
-                    location = "Berkeley, CA",
-                    isCurrentDevice = false
-                ),
-                LoginDeviceUiModel(
-                    id = 3,
-                    deviceName = "HealthMate for iPad",
-                    deviceDetails = "Last active Oct 22, 2024",
-                    lastActive = "Sign Out",
-                    location = "San Jose, CA",
-                    isCurrentDevice = false
                 )
             )
         )
@@ -95,7 +89,7 @@ fun SecurityPrivacyScreen(
     Column(
         modifier = modifier
             .fillMaxSize()
-            .background(SecurityBackground)
+            .background(MaterialTheme.colorScheme.background)
             .statusBarsPadding()
     ) {
 
@@ -113,8 +107,8 @@ fun SecurityPrivacyScreen(
             ) {
                 Icon(
                     Icons.Default.ArrowBack,
-                    contentDescription = "Back",
-                    tint = SecurityHeading,
+                    contentDescription = stringResource(R.string.security_back),
+                    tint = MaterialTheme.colorScheme.onSurface,
                     modifier = Modifier.size(23.dp)
                 )
             }
@@ -122,10 +116,10 @@ fun SecurityPrivacyScreen(
             Spacer(modifier = Modifier.width(5.dp))
 
             Text(
-                text = "Settings",
+                text = stringResource(R.string.settings),
                 fontSize = 17.sp,
                 fontWeight = FontWeight.Medium,
-                color = SecurityHeading
+                color = MaterialTheme.colorScheme.onSurface
             )
         }
 
@@ -149,7 +143,7 @@ fun SecurityPrivacyScreen(
                 modifier = Modifier
                     .fillMaxWidth()
                     .clip(RoundedCornerShape(29.dp))
-                    .background(Color.White)
+                    .background(MaterialTheme.colorScheme.surface)
                     .padding(24.dp)
             ) {
 
@@ -164,17 +158,17 @@ fun SecurityPrivacyScreen(
 
                     Column {
                         Text(
-                            text = "Change Password",
+                            text = stringResource(R.string.security_change_password),
                             fontSize = 17.sp,
                             fontWeight = FontWeight.SemiBold,
-                            color = SecurityHeading
+                            color = MaterialTheme.colorScheme.onSurface
                         )
 
                         Text(
-                            text = "Update your account credentials to keep health records safe.",
+                            text = stringResource(R.string.security_password_description),
                             fontSize = 13.sp,
                             lineHeight = 20.sp,
-                            color = SecuritySecondary
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
                     }
                 }
@@ -182,11 +176,11 @@ fun SecurityPrivacyScreen(
                 Spacer(modifier = Modifier.height(20.dp))
 
                 PasswordField(
-                    label = "Current Password",
+                    label = stringResource(R.string.security_current_password),
                     value = currentPassword,
                     onValueChange = {
                         currentPassword = it
-                        validationMessage = null
+                        validationMessageResId = 0
                     },
                     visible = showCurrentPassword,
                     onVisibilityChange = {
@@ -198,11 +192,11 @@ fun SecurityPrivacyScreen(
                 Spacer(modifier = Modifier.height(17.dp))
 
                 PasswordField(
-                    label = "New Password",
+                    label = stringResource(R.string.security_new_password),
                     value = newPassword,
                     onValueChange = {
                         newPassword = it
-                        validationMessage = null
+                        validationMessageResId = 0
                     },
                     visible = showNewPassword,
                     onVisibilityChange = {
@@ -214,11 +208,11 @@ fun SecurityPrivacyScreen(
                 Spacer(modifier = Modifier.height(17.dp))
 
                 PasswordField(
-                    label = "Confirm New Password",
+                    label = stringResource(R.string.security_confirm_new_password),
                     value = confirmPassword,
                     onValueChange = {
                         confirmPassword = it
-                        validationMessage = null
+                        validationMessageResId = 0
                     },
                     visible = showConfirmPassword,
                     onVisibilityChange = {
@@ -227,11 +221,15 @@ fun SecurityPrivacyScreen(
                     leadingIcon = Icons.Default.Lock
                 )
 
-                validationMessage?.let {
+                if (validationMessageResId != 0 || passwordErrorMessage != null) {
                     Spacer(modifier = Modifier.height(10.dp))
 
                     Text(
-                        text = it,
+                        text = if (validationMessageResId != 0) {
+                            stringResource(validationMessageResId)
+                        } else {
+                            passwordErrorMessage.orEmpty()
+                        },
                         fontSize = 11.sp,
                         color = MaterialTheme.colorScheme.error
                     )
@@ -243,23 +241,23 @@ fun SecurityPrivacyScreen(
                     onClick = {
                         when {
                             currentPassword.isBlank() -> {
-                                validationMessage =
-                                    "Please enter your current password."
+                                validationMessageResId =
+                                    R.string.security_current_password_required
                             }
 
                             newPassword.length < 8 -> {
-                                validationMessage =
-                                    "New password must contain at least 8 characters."
+                                validationMessageResId =
+                                    R.string.security_password_minimum_length
                             }
 
                             newPassword == currentPassword -> {
-                                validationMessage =
-                                    "New password must be different from the current password."
+                                validationMessageResId =
+                                    R.string.security_password_must_be_different
                             }
 
                             confirmPassword != newPassword -> {
-                                validationMessage =
-                                    "New passwords do not match."
+                                validationMessageResId =
+                                    R.string.security_passwords_do_not_match
                             }
 
                             else -> {
@@ -267,12 +265,6 @@ fun SecurityPrivacyScreen(
                                     currentPassword,
                                     newPassword
                                 )
-
-                                currentPassword = ""
-                                newPassword = ""
-                                confirmPassword = ""
-
-                                showPasswordSuccess = true
                             }
                         }
                     },
@@ -285,7 +277,7 @@ fun SecurityPrivacyScreen(
                     )
                 ) {
                     Text(
-                        text = "Update Password",
+                        text = stringResource(R.string.security_update_password),
                         fontSize = 14.sp,
                         fontWeight = FontWeight.Medium
                     )
@@ -297,7 +289,7 @@ fun SecurityPrivacyScreen(
                 modifier = Modifier
                     .fillMaxWidth()
                     .clip(RoundedCornerShape(29.dp))
-                    .background(Color.White)
+                    .background(MaterialTheme.colorScheme.surface)
                     .padding(24.dp)
             ) {
 
@@ -312,17 +304,17 @@ fun SecurityPrivacyScreen(
 
                     Column {
                         Text(
-                            text = "Login Devices",
+                            text = stringResource(R.string.security_login_devices),
                             fontSize = 17.sp,
                             fontWeight = FontWeight.SemiBold,
-                            color = SecurityHeading
+                            color = MaterialTheme.colorScheme.onSurface
                         )
 
                         Text(
-                            text = "Review all authenticated sessions for this account.",
+                            text = stringResource(R.string.security_devices_description),
                             fontSize = 13.sp,
                             lineHeight = 20.sp,
-                            color = SecuritySecondary
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
                     }
                 }
@@ -347,11 +339,14 @@ fun SecurityPrivacyScreen(
     }
 
     // Password Update Confirmation
-    if (showPasswordSuccess) {
+    if (passwordSuccessMessage != null) {
         AlertDialog(
             onDismissRequest = {
-                showPasswordSuccess = false
+                onClearPasswordMessages()
             },
+            containerColor = MaterialTheme.colorScheme.surface,
+            titleContentColor = MaterialTheme.colorScheme.onSurface,
+            textContentColor = MaterialTheme.colorScheme.onSurface,
             icon = {
                 Icon(
                     Icons.Default.CheckCircle,
@@ -360,18 +355,22 @@ fun SecurityPrivacyScreen(
                 )
             },
             title = {
-                Text("Password Updated")
+                Text(stringResource(R.string.security_password_updated))
             },
             text = {
-                Text("Your password update request was submitted.")
+                Text(passwordSuccessMessage)
             },
             confirmButton = {
                 TextButton(
                     onClick = {
-                        showPasswordSuccess = false
+                        currentPassword = ""
+                        newPassword = ""
+                        confirmPassword = ""
+                        onClearPasswordMessages()
                     }
                 ) {
-                    Text("OK")
+                    Text(stringResource(R.string.security_ok))
+                    MaterialTheme.colorScheme.primary
                 }
             }
         )
@@ -383,12 +382,18 @@ fun SecurityPrivacyScreen(
             onDismissRequest = {
                 selectedDevice = null
             },
+            containerColor = MaterialTheme.colorScheme.surface,
+            titleContentColor = MaterialTheme.colorScheme.onSurface,
+            textContentColor = MaterialTheme.colorScheme.onSurface,
             title = {
-                Text("Sign Out Device?")
+                Text(stringResource(R.string.security_sign_out_device_title))
             },
             text = {
                 Text(
-                    "Are you sure you want to sign out ${device.deviceName}?"
+                    stringResource(
+                        R.string.security_sign_out_device_message,
+                        device.deviceName
+                    )
                 )
             },
             confirmButton = {
@@ -403,8 +408,8 @@ fun SecurityPrivacyScreen(
                     }
                 ) {
                     Text(
-                        "Sign Out",
-                        color = Color(0xFFDC2626)
+                        stringResource(R.string.security_sign_out),
+                        color = MaterialTheme.colorScheme.error
                     )
                 }
             },
@@ -414,7 +419,8 @@ fun SecurityPrivacyScreen(
                         selectedDevice = null
                     }
                 ) {
-                    Text("Cancel")
+                    Text(stringResource(R.string.security_cancel))
+                    MaterialTheme.colorScheme.primary
                 }
             }
         )
@@ -436,7 +442,7 @@ private fun PasswordField(
             text = label,
             fontSize = 12.sp,
             fontWeight = FontWeight.Medium,
-            color = SecuritySecondary
+            color = MaterialTheme.colorScheme.onSurfaceVariant
         )
 
         Spacer(modifier = Modifier.height(7.dp))
@@ -446,7 +452,7 @@ private fun PasswordField(
                 .fillMaxWidth()
                 .height(49.dp)
                 .clip(CircleShape)
-                .background(SecurityField)
+                .background(MaterialTheme.colorScheme.surfaceVariant)
                 .padding(horizontal = 14.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
@@ -454,7 +460,7 @@ private fun PasswordField(
             Icon(
                 imageVector = leadingIcon,
                 contentDescription = null,
-                tint = SecuritySecondary,
+                tint = MaterialTheme.colorScheme.onSurfaceVariant,
                 modifier = Modifier.size(19.dp)
             )
 
@@ -475,15 +481,18 @@ private fun PasswordField(
                 },
                 textStyle = TextStyle(
                     fontSize = 13.sp,
-                    color = SecurityHeading
+                    color = MaterialTheme.colorScheme.onSurface
                 ),
                 decorationBox = { innerTextField ->
                     Box {
                         if (value.isEmpty()) {
                             Text(
-                                text = "Enter $label",
+                                text = stringResource(
+                                    R.string.security_enter_password,
+                                    label
+                                ),
                                 fontSize = 13.sp,
-                                color = Color(0xFF91A0B7)
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
                             )
                         }
 
@@ -498,8 +507,10 @@ private fun PasswordField(
                 } else {
                     Icons.Default.Visibility
                 },
-                contentDescription = "Toggle password visibility",
-                tint = SecuritySecondary,
+                contentDescription = stringResource(
+                    R.string.security_toggle_password_visibility
+                ),
+                tint = MaterialTheme.colorScheme.onSurfaceVariant,
                 modifier = Modifier
                     .size(20.dp)
                     .clickable(onClick = onVisibilityChange)
@@ -517,7 +528,7 @@ private fun LoginDeviceItem(
         modifier = Modifier
             .fillMaxWidth()
             .clip(RoundedCornerShape(17.dp))
-            .background(SecurityField)
+            .background(MaterialTheme.colorScheme.surfaceVariant)
             .padding(13.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
@@ -535,13 +546,13 @@ private fun LoginDeviceItem(
         Box(
             modifier = Modifier
                 .size(39.dp)
-                .background(Color(0xFFDCE9FF), CircleShape),
+                .background(MaterialTheme.colorScheme.surface, CircleShape),
             contentAlignment = Alignment.Center
         ) {
             Icon(
                 imageVector = deviceIcon,
                 contentDescription = null,
-                tint = SecuritySecondary,
+                tint = MaterialTheme.colorScheme.onSurfaceVariant,
                 modifier = Modifier.size(20.dp)
             )
         }
@@ -555,17 +566,24 @@ private fun LoginDeviceItem(
                 text = device.deviceName,
                 fontSize = 13.sp,
                 fontWeight = FontWeight.Medium,
-                color = SecurityHeading
+                color = MaterialTheme.colorScheme.onSurface
             )
 
             Text(
-                text = listOf(
-                    device.deviceDetails,
-                    device.location
-                ).filter { it.isNotBlank() }.joinToString(" • "),
+                text = stringResource(
+                    R.string.security_android_device_details,
+                    android.os.Build.VERSION.RELEASE,
+                    device.deviceDetails.ifBlank {
+                        stringResource(R.string.security_unavailable)
+                    }
+                ) + if (device.location.isNotBlank()) {
+                    " • ${device.location}"
+                } else {
+                    ""
+                },
                 fontSize = 10.sp,
                 lineHeight = 15.sp,
-                color = SecuritySecondary
+                color = MaterialTheme.colorScheme.onSurfaceVariant
             )
         }
 
@@ -575,24 +593,24 @@ private fun LoginDeviceItem(
             Box(
                 modifier = Modifier
                     .clip(CircleShape)
-                    .background(Color(0xFFDCE8FF))
+                    .background(MaterialTheme.colorScheme.primaryContainer)
                     .padding(
                         horizontal = 10.dp,
                         vertical = 9.dp
                     )
             ) {
                 Text(
-                    text = "Active now",
+                    text = stringResource(R.string.security_active_now),
                     fontSize = 10.sp,
                     fontWeight = FontWeight.Medium,
-                    color = SecurityHeading
+                    color = MaterialTheme.colorScheme.onSurface
                 )
             }
         } else {
             Box(
                 modifier = Modifier
                     .clip(CircleShape)
-                    .background(Color(0xFFD9E6F8))
+                    .background(MaterialTheme.colorScheme.surface)
                     .clickable(onClick = onSignOutClick)
                     .padding(
                         horizontal = 11.dp,
@@ -600,9 +618,9 @@ private fun LoginDeviceItem(
                     )
             ) {
                 Text(
-                    text = "Sign Out",
+                    text = stringResource(R.string.security_sign_out),
                     fontSize = 10.sp,
-                    color = SecurityHeading
+                    color = MaterialTheme.colorScheme.onSurface
                 )
             }
         }
@@ -616,13 +634,13 @@ private fun SecurityIcon(
     Box(
         modifier = Modifier
             .size(40.dp)
-            .background(Color(0xFFD9E7FF), CircleShape),
+            .background(MaterialTheme.colorScheme.surfaceVariant, CircleShape),
         contentAlignment = Alignment.Center
     ) {
         Icon(
             imageVector = icon,
             contentDescription = null,
-            tint = SecurityBlue,
+            tint = MaterialTheme.colorScheme.primary,
             modifier = Modifier.size(21.dp)
         )
     }

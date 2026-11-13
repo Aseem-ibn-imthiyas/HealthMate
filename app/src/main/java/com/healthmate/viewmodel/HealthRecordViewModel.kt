@@ -19,8 +19,15 @@ import java.util.Locale
 
 import kotlinx.coroutines.Job
 
+import android.content.Context
+import com.healthmate.data.repository.NotificationRepository
+import com.healthmate.notifications.HealthMateNotificationManager
+
 class HealthRecordViewModel(
-    private val repository: HealthRecordRepository
+    private val repository: HealthRecordRepository,
+    private val userId: Int,
+    private val notificationRepository: NotificationRepository,
+    private val context: Context
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(
@@ -44,7 +51,7 @@ class HealthRecordViewModel(
 
     private fun observeAllRecords() {
         viewModelScope.launch {
-            repository.getAllRecords().collectLatest { records ->
+            repository.getAllRecords(userId).collectLatest { records ->
 
                 _uiState.value = _uiState.value.copy(
                     records = records,
@@ -54,13 +61,9 @@ class HealthRecordViewModel(
         }
     }
 
-    // ------------------------------------
-    // RECORD COUNT
-    // ------------------------------------
-
     private fun observeRecordCount() {
         viewModelScope.launch {
-            repository.getRecordCount().collectLatest { count ->
+            repository.getRecordCount(userId).collectLatest { count ->
 
                 _uiState.value = _uiState.value.copy(
                     totalRecords = count
@@ -69,16 +72,12 @@ class HealthRecordViewModel(
         }
     }
 
-    // ------------------------------------
-    // TODAY'S HEALTH RECORD
-    // ------------------------------------
-
     private fun observeTodayRecord() {
         viewModelScope.launch {
 
             val today = getTodayDate()
 
-            repository.getTodayRecord(today)
+            repository.getTodayRecord(today, userId)
                 .collectLatest { record ->
 
                     _uiState.value = _uiState.value.copy(
@@ -128,10 +127,27 @@ class HealthRecordViewModel(
                     date = date,
                     steps = steps,
                     calories = calories,
-                    water = water
+                    water = water,
+                    userId = userId
                 )
 
-                repository.saveRecord(record)
+                repository.saveRecord(record, userId)
+
+                // Create in-app notification
+                val notificationId = notificationRepository.createNotification(
+                    userId = userId,
+                    title = "Health Record Saved",
+                    message = "Your health record for $date has been saved successfully.",
+                    type = "RECORD"
+                )
+
+                // Display Android system notification
+                HealthMateNotificationManager.showNotification(
+                    context = context,
+                    notificationId = notificationId.toInt(),
+                    title = "Health Record Saved",
+                    message = "Your health record for $date has been saved successfully."
+                )
 
                 _uiState.value = _uiState.value.copy(
                     isLoading = false,
@@ -179,7 +195,7 @@ class HealthRecordViewModel(
                 )
 
                 val existingRecord =
-                    repository.getRecordByDate(record.date)
+                    repository.getRecordByDate(record.date, userId)
 
                 if (
                     existingRecord != null &&
@@ -191,7 +207,7 @@ class HealthRecordViewModel(
                     return@launch
                 }
 
-                repository.updateRecord(record)
+                repository.updateRecord(record, userId)
 
                 _uiState.value = _uiState.value.copy(
                     isLoading = false,
@@ -218,7 +234,7 @@ class HealthRecordViewModel(
 
             try {
 
-                repository.deleteRecord(record)
+                repository.deleteRecord(record, userId)
 
                 _uiState.value = _uiState.value.copy(
                     successMessage = "Health record deleted successfully."
@@ -254,7 +270,7 @@ class HealthRecordViewModel(
         searchJob = viewModelScope.launch {
 
             try {
-                repository.searchRecords(searchDate)
+                repository.searchRecords(searchDate, userId)
                     .collectLatest { results ->
 
                         _uiState.value = _uiState.value.copy(
@@ -297,7 +313,8 @@ class HealthRecordViewModel(
             try {
                 repository.filterRecordsByDate(
                     startDate,
-                    endDate
+                    endDate,
+                    userId
                 ).collectLatest { results ->
 
                     _uiState.value = _uiState.value.copy(
@@ -337,7 +354,7 @@ class HealthRecordViewModel(
     ): HealthRecord? {
 
         return try {
-            repository.getRecordById(recordId)
+            repository.getRecordById(recordId, userId)
         } catch (e: Exception) {
             showError(
                 e.message ?: "Unable to retrieve record."

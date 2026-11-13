@@ -30,6 +30,9 @@ import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
 import com.healthmate.R
 import com.healthmate.ui.profile.model.EditProfileUiModel
+import android.content.Intent
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 
 private val ProfileBlue = Color(0xFF0755D9)
 private val ProfileDarkBlue = Color(0xFF20447F)
@@ -44,41 +47,59 @@ fun EditProfileScreen(
     onBackClick: () -> Unit,
     onSaveChanges: (EditProfileUiModel) -> Unit,
     onCancelClick: () -> Unit = onBackClick,
+    initialFullName: String = "Mohamed Aseem",
+    initialEmail: String = "Aseem@gmail.com",
+    initialProfileImageUri: String? = null,
     modifier: Modifier = Modifier
 ) {
+    val context = LocalContext.current
 
-    var fullName by remember {
-        mutableStateOf("Mohamed Aseem")
+    var fullName by remember(initialFullName) {
+        mutableStateOf(initialFullName)
     }
 
-    var email by remember {
-        mutableStateOf("Aseem@gmail.com")
+    var email by remember(initialEmail) {
+        mutableStateOf(initialEmail)
     }
 
     var username by remember {
         mutableStateOf("@aseemdev")
     }
 
-    var profileImageUri by remember {
-        mutableStateOf<android.net.Uri?>(null)
+    var profileImageUri by remember(initialProfileImageUri) {
+        mutableStateOf(
+            initialProfileImageUri?.let {
+                android.net.Uri.parse(it)
+            }
+        )
     }
 
-    var validationMessage by remember {
-        mutableStateOf<String?>(null)
+    var validationMessageResId by remember {
+        mutableIntStateOf(0)
     }
 
     val imagePicker = rememberLauncherForActivityResult(
-        contract = ActivityResultContracts.GetContent()
+        contract = ActivityResultContracts.OpenDocument()
     ) { uri ->
         if (uri != null) {
-            profileImageUri = uri
+            try {
+                context.contentResolver.takePersistableUriPermission(
+                    uri,
+                    Intent.FLAG_GRANT_READ_URI_PERMISSION
+                )
+
+                profileImageUri = uri
+
+            } catch (e: SecurityException) {
+                validationMessageResId = R.string.edit_profile_image_error
+            }
         }
     }
 
     Column(
         modifier = modifier
             .fillMaxSize()
-            .background(ProfileBackground)
+            .background(MaterialTheme.colorScheme.background)
             .statusBarsPadding()
     ) {
 
@@ -97,8 +118,8 @@ fun EditProfileScreen(
             ) {
                 Icon(
                     imageVector = Icons.Default.ArrowBack,
-                    contentDescription = "Back",
-                    tint = ProfileHeading,
+                    contentDescription = stringResource(R.string.edit_profile_back),
+                    tint = MaterialTheme.colorScheme.onSurface,
                     modifier = Modifier.size(23.dp)
                 )
             }
@@ -106,10 +127,10 @@ fun EditProfileScreen(
             Spacer(modifier = Modifier.width(5.dp))
 
             Text(
-                text = "Settings",
+                text = stringResource(R.string.settings),
                 fontSize = 17.sp,
                 fontWeight = FontWeight.Medium,
-                color = ProfileHeading
+                color = MaterialTheme.colorScheme.onSurface
             )
         }
 
@@ -132,8 +153,8 @@ fun EditProfileScreen(
                     .background(
                         androidx.compose.ui.graphics.Brush.horizontalGradient(
                             colors = listOf(
-                                Color.White,
-                                Color(0xFFF0F5FF)
+                                MaterialTheme.colorScheme.surface,
+                                MaterialTheme.colorScheme.surfaceVariant
                             )
                         )
                     )
@@ -148,7 +169,7 @@ fun EditProfileScreen(
                     if (profileImageUri != null) {
                         AsyncImage(
                             model = profileImageUri,
-                            contentDescription = "Profile picture",
+                            contentDescription = stringResource(R.string.edit_profile_picture),
                             modifier = Modifier
                                 .size(88.dp)
                                 .clip(CircleShape)
@@ -162,7 +183,7 @@ fun EditProfileScreen(
                     } else {
                         AsyncImage(
                             model = R.drawable.profile_avatar,
-                            contentDescription = "Profile picture",
+                            contentDescription = stringResource(R.string.edit_profile_picture),
                             modifier = Modifier
                                 .size(88.dp)
                                 .clip(CircleShape)
@@ -179,20 +200,20 @@ fun EditProfileScreen(
                         modifier = Modifier
                             .size(33.dp)
                             .clip(CircleShape)
-                            .background(ProfileBlue)
+                            .background(MaterialTheme.colorScheme.primary)
                             .border(
                                 2.dp,
                                 Color.White,
                                 CircleShape
                             )
                             .clickable {
-                                imagePicker.launch("image/*")
+                                imagePicker.launch(arrayOf("image/*"))
                             },
                         contentAlignment = Alignment.Center
                     ) {
                         Icon(
                             imageVector = Icons.Default.CameraAlt,
-                            contentDescription = "Change profile picture",
+                            contentDescription = stringResource(R.string.edit_profile_change_picture),
                             tint = Color.White,
                             modifier = Modifier.size(17.dp)
                         )
@@ -202,10 +223,12 @@ fun EditProfileScreen(
                 Spacer(modifier = Modifier.height(13.dp))
 
                 Text(
-                    text = fullName.ifBlank { "Your Name" },
+                    text = fullName.ifBlank {
+                        stringResource(R.string.edit_profile_your_name)
+                    },
                     fontSize = 21.sp,
                     fontWeight = FontWeight.Bold,
-                    color = ProfileHeading
+                    color = MaterialTheme.colorScheme.onSurface
                 )
 
                 Spacer(modifier = Modifier.height(3.dp))
@@ -213,7 +236,7 @@ fun EditProfileScreen(
                 Text(
                     text = email,
                     fontSize = 13.sp,
-                    color = ProfileSecondary
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
             }
 
@@ -224,7 +247,7 @@ fun EditProfileScreen(
                 modifier = Modifier
                     .fillMaxWidth()
                     .clip(RoundedCornerShape(28.dp))
-                    .background(Color.White)
+                    .background(MaterialTheme.colorScheme.surface)
                     .padding(24.dp)
             ) {
 
@@ -239,16 +262,16 @@ fun EditProfileScreen(
 
                     Column {
                         Text(
-                            text = "Personal Information",
+                            text = stringResource(R.string.edit_profile_personal_information),
                             fontSize = 17.sp,
                             fontWeight = FontWeight.SemiBold,
-                            color = ProfileHeading
+                            color = MaterialTheme.colorScheme.onSurface
                         )
 
                         Text(
-                            text = "Manage your identity across HealthMate",
+                            text = stringResource(R.string.edit_profile_manage_identity),
                             fontSize = 11.sp,
-                            color = ProfileSecondary
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
                     }
                 }
@@ -256,7 +279,9 @@ fun EditProfileScreen(
                 Spacer(modifier = Modifier.height(23.dp))
 
                 // Full Name
-                ProfileFieldLabel("Full Name")
+                ProfileFieldLabel(
+            stringResource(R.string.edit_profile_full_name)
+                )
 
                 Spacer(modifier = Modifier.height(7.dp))
 
@@ -264,9 +289,9 @@ fun EditProfileScreen(
                     value = fullName,
                     onValueChange = {
                         fullName = it
-                        validationMessage = null
+                        validationMessageResId = 0
                     },
-                    placeholder = "Enter your full name",
+                    placeholder = stringResource(R.string.edit_profile_enter_full_name),
                     icon = Icons.Default.PersonOutline,
                     keyboardType = KeyboardType.Text
                 )
@@ -274,7 +299,9 @@ fun EditProfileScreen(
                 Spacer(modifier = Modifier.height(16.dp))
 
                 // Email
-                ProfileFieldLabel("Email Address")
+                ProfileFieldLabel(
+            stringResource(R.string.edit_profile_email_address)
+                )
 
                 Spacer(modifier = Modifier.height(7.dp))
 
@@ -282,9 +309,9 @@ fun EditProfileScreen(
                     value = email,
                     onValueChange = {
                         email = it
-                        validationMessage = null
+                        validationMessageResId = 0
                     },
-                    placeholder = "Enter your email",
+                    placeholder = stringResource(R.string.edit_profile_enter_email),
                     icon = Icons.Default.Email,
                     keyboardType = KeyboardType.Email
                 )
@@ -292,7 +319,9 @@ fun EditProfileScreen(
                 Spacer(modifier = Modifier.height(16.dp))
 
                 // Username
-                ProfileFieldLabel("Username")
+                ProfileFieldLabel(
+                    stringResource(R.string.edit_profile_username)
+                )
 
                 Spacer(modifier = Modifier.height(7.dp))
 
@@ -300,9 +329,9 @@ fun EditProfileScreen(
                     value = username,
                     onValueChange = {
                         username = it
-                        validationMessage = null
+                        validationMessageResId = 0
                     },
-                    placeholder = "Enter username",
+                    placeholder = stringResource(R.string.edit_profile_enter_username),
                     icon = Icons.Default.AlternateEmail,
                     keyboardType = KeyboardType.Text
                 )
@@ -315,7 +344,7 @@ fun EditProfileScreen(
                 modifier = Modifier
                     .fillMaxWidth()
                     .clip(RoundedCornerShape(28.dp))
-                    .background(Color.White)
+                    .background(MaterialTheme.colorScheme.surface)
                     .padding(24.dp)
             ) {
 
@@ -329,10 +358,10 @@ fun EditProfileScreen(
                     Spacer(modifier = Modifier.width(10.dp))
 
                     Text(
-                        text = "Account Information",
+                        text = stringResource(R.string.edit_profile_account_information),
                         fontSize = 17.sp,
                         fontWeight = FontWeight.SemiBold,
-                        color = ProfileHeading
+                        color = MaterialTheme.colorScheme.onSurface
                     )
                 }
 
@@ -343,7 +372,7 @@ fun EditProfileScreen(
                     modifier = Modifier
                         .fillMaxWidth()
                         .clip(RoundedCornerShape(17.dp))
-                        .background(ProfileFieldBackground)
+                        .background(MaterialTheme.colorScheme.surfaceVariant)
                         .padding(16.dp),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
@@ -359,23 +388,23 @@ fun EditProfileScreen(
                         modifier = Modifier.weight(1f)
                     ) {
                         Text(
-                            text = "Member Since",
+                            text = stringResource(R.string.edit_profile_member_since),
                             fontSize = 11.sp,
-                            color = ProfileSecondary
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
 
                         Text(
-                            text = "October 2023",
+                            text = stringResource(R.string.edit_profile_member_date),
                             fontSize = 13.sp,
                             fontWeight = FontWeight.Medium,
-                            color = ProfileHeading
+                            color = MaterialTheme.colorScheme.onSurface
                         )
                     }
 
                     Text(
-                        text = "7 min ago",
+                        text = stringResource(R.string.edit_profile_time_ago),
                         fontSize = 10.sp,
-                        color = ProfileHeading
+                        color = MaterialTheme.colorScheme.onSurface
                     )
                 }
 
@@ -386,7 +415,7 @@ fun EditProfileScreen(
                     modifier = Modifier
                         .fillMaxWidth()
                         .clip(RoundedCornerShape(17.dp))
-                        .background(ProfileFieldBackground)
+                        .background(MaterialTheme.colorScheme.surfaceVariant)
                         .padding(16.dp),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
@@ -394,8 +423,8 @@ fun EditProfileScreen(
                     ProfileSectionIcon(
                         icon = Icons.Default.Shield,
                         size = 40.dp,
-                        background = Color(0xFFD7E6FA),
-                        tint = Color(0xFF60748C)
+                        background = MaterialTheme.colorScheme.surfaceVariant,
+                        tint = MaterialTheme.colorScheme.primary
                     )
 
                     Spacer(modifier = Modifier.width(12.dp))
@@ -404,23 +433,23 @@ fun EditProfileScreen(
                         modifier = Modifier.weight(1f)
                     ) {
                         Text(
-                            text = "Account Status",
+                            text = stringResource(R.string.edit_profile_account_status),
                             fontSize = 11.sp,
-                            color = ProfileSecondary
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
 
                         Text(
-                            text = "Standard Protected",
+                            text = stringResource(R.string.edit_profile_standard_protected),
                             fontSize = 13.sp,
                             fontWeight = FontWeight.Medium,
-                            color = ProfileHeading
+                            color = MaterialTheme.colorScheme.onSurface
                         )
                     }
 
                     Row(
                         modifier = Modifier
                             .clip(CircleShape)
-                            .background(Color(0xFFE3EEFF))
+                            .background(MaterialTheme.colorScheme.surfaceVariant)
                             .padding(
                                 horizontal = 11.dp,
                                 vertical = 7.dp
@@ -430,25 +459,25 @@ fun EditProfileScreen(
                         Box(
                             modifier = Modifier
                                 .size(8.dp)
-                                .background(ProfileBlue, CircleShape)
+                                .background(MaterialTheme.colorScheme.primary, CircleShape)
                         )
 
                         Spacer(modifier = Modifier.width(6.dp))
 
                         Text(
-                            text = "Active",
+                            text = stringResource(R.string.edit_profile_active),
                             fontSize = 11.sp,
-                            color = ProfileHeading
+                            color = MaterialTheme.colorScheme.onSurface
                         )
                     }
                 }
             }
 
-            validationMessage?.let { message ->
+            if (validationMessageResId != 0) {
                 Spacer(modifier = Modifier.height(12.dp))
 
                 Text(
-                    text = message,
+                    text = stringResource(validationMessageResId),
                     fontSize = 12.sp,
                     color = MaterialTheme.colorScheme.error
                 )
@@ -457,15 +486,14 @@ fun EditProfileScreen(
             // Spacing after Account Status
             Spacer(modifier = Modifier.height(22.dp))
 
-            // Validation Message
-            validationMessage?.let { message ->
+            if (validationMessageResId != 0) {
+                Spacer(modifier = Modifier.height(12.dp))
+
                 Text(
-                    text = message,
+                    text = stringResource(validationMessageResId),
                     fontSize = 12.sp,
                     color = MaterialTheme.colorScheme.error
                 )
-
-                Spacer(modifier = Modifier.height(12.dp))
             }
 
             // Save Changes Button
@@ -473,18 +501,15 @@ fun EditProfileScreen(
                 onClick = {
                     when {
                         fullName.isBlank() -> {
-                            validationMessage =
-                                "Please enter your full name."
+                            validationMessageResId = R.string.edit_profile_name_required
                         }
 
                         !Patterns.EMAIL_ADDRESS.matcher(email.trim()).matches() -> {
-                            validationMessage =
-                                "Please enter a valid email address."
+                            validationMessageResId = R.string.edit_profile_valid_email
                         }
 
                         username.isBlank() -> {
-                            validationMessage =
-                                "Please enter a username."
+                            validationMessageResId = R.string.edit_profile_username_required
                         }
 
                         else -> {
@@ -504,7 +529,7 @@ fun EditProfileScreen(
                     .height(51.dp),
                 shape = CircleShape,
                 colors = ButtonDefaults.buttonColors(
-                    containerColor = Color(0xFF0752CC)
+                    containerColor = MaterialTheme.colorScheme.primary
                 ),
                 elevation = ButtonDefaults.buttonElevation(
                     defaultElevation = 3.dp
@@ -519,7 +544,7 @@ fun EditProfileScreen(
                 Spacer(modifier = Modifier.width(7.dp))
 
                 Text(
-                    text = "Save Changes",
+                    text = stringResource(R.string.edit_profile_save_changes),
                     fontSize = 14.sp,
                     fontWeight = FontWeight.Bold
                 )
@@ -535,18 +560,18 @@ fun EditProfileScreen(
                     .height(51.dp),
                 shape = CircleShape,
                 colors = ButtonDefaults.outlinedButtonColors(
-                    containerColor = Color(0xFFF0F4FC)
+                    containerColor = MaterialTheme.colorScheme.surfaceVariant
                 ),
                 border = androidx.compose.foundation.BorderStroke(
                     1.dp,
-                    ProfileBorder
+                    MaterialTheme.colorScheme.outline
                 )
             ) {
                 Text(
-                    text = "Cancel",
+                    text = stringResource(R.string.settings_cancel),
                     fontSize = 14.sp,
                     fontWeight = FontWeight.Medium,
-                    color = ProfileHeading
+                    color = MaterialTheme.colorScheme.onSurface
                 )
             }
 
@@ -563,8 +588,8 @@ fun EditProfileScreen(
 private fun ProfileSectionIcon(
     icon: androidx.compose.ui.graphics.vector.ImageVector,
     size: androidx.compose.ui.unit.Dp = 36.dp,
-    background: Color = Color(0xFFE8F0FF),
-    tint: Color = ProfileBlue
+    background: Color = MaterialTheme.colorScheme.surfaceVariant,
+    tint: Color = MaterialTheme.colorScheme.primary
 ) {
     Box(
         modifier = Modifier
@@ -589,7 +614,7 @@ private fun ProfileFieldLabel(
         text = text,
         fontSize = 12.sp,
         fontWeight = FontWeight.Medium,
-        color = ProfileSecondary
+        color = MaterialTheme.colorScheme.onSurfaceVariant
     )
 }
 
@@ -606,7 +631,7 @@ private fun ProfileInputField(
             .fillMaxWidth()
             .height(53.dp)
             .clip(RoundedCornerShape(15.dp))
-            .background(ProfileFieldBackground)
+            .background(MaterialTheme.colorScheme.surfaceVariant)
             .padding(horizontal = 14.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
@@ -614,7 +639,7 @@ private fun ProfileInputField(
         Icon(
             imageVector = icon,
             contentDescription = null,
-            tint = ProfileBlue,
+            tint = MaterialTheme.colorScheme.primary,
             modifier = Modifier.size(19.dp)
         )
 
@@ -630,7 +655,7 @@ private fun ProfileInputField(
             ),
             textStyle = TextStyle(
                 fontSize = 14.sp,
-                color = ProfileHeading
+                color = MaterialTheme.colorScheme.onSurface
             ),
             decorationBox = { innerTextField ->
                 Box {
@@ -638,7 +663,7 @@ private fun ProfileInputField(
                         Text(
                             text = placeholder,
                             fontSize = 14.sp,
-                            color = Color(0xFF91A0B7)
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
                     }
 

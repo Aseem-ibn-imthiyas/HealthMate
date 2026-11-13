@@ -9,7 +9,7 @@ import androidx.room.PrimaryKey
     tableName = "health_records",
     indices = [
         Index(
-            value = ["date"],
+            value = ["userId", "date"],
             unique = true
         )
     ]
@@ -25,5 +25,7 @@ data class HealthRecord(
 
     val calories: Int,
 
-    val water: Int
+    val water: Int,
+
+    val userId: Int
 )

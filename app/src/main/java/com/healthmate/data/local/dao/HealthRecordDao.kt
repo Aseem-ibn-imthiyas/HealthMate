@@ -1,14 +1,11 @@
+
 package com.healthmate.data.local.dao
 
 import androidx.room.Dao
-import androidx.room.Delete
 import androidx.room.Insert
 import androidx.room.OnConflictStrategy
 import androidx.room.Query
-import androidx.room.Update
-
 import com.healthmate.data.local.entity.HealthRecord
-
 import kotlinx.coroutines.flow.Flow
 
 @Dao
@@ -16,98 +13,124 @@ interface HealthRecordDao {
 
     // CREATE
     @Insert(onConflict = OnConflictStrategy.IGNORE)
-    suspend fun insertRecord(
-        record: HealthRecord
-    ): Long
+    suspend fun insertRecord(record: HealthRecord): Long
 
-
-    // READ - Get all records
-    @Query(
-        "SELECT * FROM health_records ORDER BY date DESC"
-    )
-    fun getAllRecords(): Flow<List<HealthRecord>>
-
-
-    // READ - Get record by ID
-    @Query(
-        "SELECT * FROM health_records WHERE id = :recordId"
-    )
-    suspend fun getRecordById(
-        recordId: Int
-    ): HealthRecord?
-
-
-    // READ - Get record by date
-    @Query(
-        "SELECT * FROM health_records WHERE date = :date LIMIT 1"
-    )
-    suspend fun getRecordByDate(
-        date: String
-    ): HealthRecord?
-
-
-    // UPDATE
-    @Update
-    suspend fun updateRecord(
-        record: HealthRecord
-    )
-
-
-    // DELETE
-    @Delete
-    suspend fun deleteRecord(
-        record: HealthRecord
-    )
-
-
-    // DELETE - By ID
-    @Query(
-        "DELETE FROM health_records WHERE id = :recordId"
-    )
-    suspend fun deleteRecordById(
-        recordId: Int
-    )
-
-
-    // SEARCH - Records within a date range
+    // READ - Get all records belonging to a user
     @Query(
         """
         SELECT * FROM health_records
-        WHERE date BETWEEN :startDate AND :endDate
+        WHERE userId = :userId
         ORDER BY date DESC
         """
     )
-    fun searchRecordsByDate(
-        startDate: String,
-        endDate: String
-    ): Flow<List<HealthRecord>>
+    fun getAllRecords(userId: Int): Flow<List<HealthRecord>>
 
+    // READ - Get record by ID and owner
+    @Query(
+        """
+        SELECT * FROM health_records
+        WHERE id = :recordId AND userId = :userId
+        LIMIT 1
+        """
+    )
+    suspend fun getRecordById(
+        recordId: Int,
+        userId: Int
+    ): HealthRecord?
+
+    // READ - Get record by date and owner
+    @Query(
+        """
+        SELECT * FROM health_records
+        WHERE date = :date AND userId = :userId
+        LIMIT 1
+        """
+    )
+    suspend fun getRecordByDate(
+        date: String,
+        userId: Int
+    ): HealthRecord?
+
+    // UPDATE - Only update the owner's record
+    @Query(
+        """
+        UPDATE health_records
+        SET date = :date,
+            steps = :steps,
+            calories = :calories,
+            water = :water
+        WHERE id = :recordId AND userId = :userId
+        """
+    )
+    suspend fun updateRecord(
+        recordId: Int,
+        date: String,
+        steps: Int,
+        calories: Int,
+        water: Int,
+        userId: Int
+    ): Int
+
+    // DELETE - Only delete the owner's record
+    @Query(
+        """
+        DELETE FROM health_records
+        WHERE id = :recordId AND userId = :userId
+        """
+    )
+    suspend fun deleteRecordById(
+        recordId: Int,
+        userId: Int
+    ): Int
 
     // SEARCH - Specific date
     @Query(
         """
         SELECT * FROM health_records
-        WHERE date LIKE '%' || :searchDate || '%'
+        WHERE userId = :userId
+        AND date LIKE '%' || :searchDate || '%'
         ORDER BY date DESC
         """
     )
     fun searchRecords(
-        searchDate: String
+        searchDate: String,
+        userId: Int
     ): Flow<List<HealthRecord>>
 
-
-    // READ - Today's record
+    // FILTER - Date range
     @Query(
-        "SELECT * FROM health_records WHERE date = :today LIMIT 1"
+        """
+        SELECT * FROM health_records
+        WHERE userId = :userId
+        AND date BETWEEN :startDate AND :endDate
+        ORDER BY date DESC
+        """
+    )
+    fun searchRecordsByDate(
+        startDate: String,
+        endDate: String,
+        userId: Int
+    ): Flow<List<HealthRecord>>
+
+    // DASHBOARD - Today's record
+    @Query(
+        """
+        SELECT * FROM health_records
+        WHERE date = :today AND userId = :userId
+        LIMIT 1
+        """
     )
     fun getTodayRecord(
-        today: String
+        today: String,
+        userId: Int
     ): Flow<HealthRecord?>
 
-
-    // READ - Total number of records
+    // TOTAL - User-specific record count
     @Query(
-        "SELECT COUNT(*) FROM health_records"
+        """
+        SELECT COUNT(*) FROM health_records
+        WHERE userId = :userId
+        """
     )
-    fun getRecordCount(): Flow<Int>
+    fun getRecordCount(userId: Int): Flow<Int>
 }

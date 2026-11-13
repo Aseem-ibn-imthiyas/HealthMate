@@ -1,3 +1,249 @@
+
 <resources>
     <string name="app_name">HealthMate</string>
+
+    <!-- Language Settings -->
+    <string name="settings">Settings</string>
+    <string name="choose_language">Choose Your Language</string>
+    <string name="language_description">Select your preferred language and medical terminology for HealthMate.</string>
+    <string name="available_languages">Available Languages</string>
+    <string name="select_language_instruction">Select one language to continue</string>
+    <string name="language_options_count">5 OPTIONS</string>
+    <string name="save_language">Save Language</string>
+    <string name="language_change_hint">You can change language preferences later in Settings.</string>
+
+    <!-- Language Names -->
+    <string name="language_english">English</string>
+    <string name="language_sinhala">Sinhala</string>
+    <string name="language_tamil">Tamil</string>
+    <string name="language_hindi">Hindi</string>
+    <string name="language_arabic">Arabic</string>
+
+    <!-- Native Language Names -->
+    <string name="native_english">English</string>
+    <string name="native_sinhala">සිංහල</string>
+    <string name="native_tamil">தமிழ்</string>
+    <string name="native_hindi">हिन्दी</string>
+    <string name="native_arabic">العربية</string>
+
+
+    <!-- Settings Main Screen -->
+    <string name="settings_manage_modify_account">Manage &amp; Modify Account</string>
+
+    <!-- Profile Summary -->
+    <string name="healthmate_user">HealthMate User</string>
+    <string name="profile_picture">Profile picture</string>
+
+    <!-- Settings Sections -->
+    <string name="settings_account">ACCOUNT</string>
+    <string name="settings_preferences">PREFERENCES</string>
+    <string name="settings_support">SUPPORT</string>
+
+    <!-- Account -->
+    <string name="settings_manage_profile">Manage Profile</string>
+    <string name="settings_personal_information">Personal information</string>
+    <string name="settings_security_privacy">Security &amp; Privacy</string>
+    <string name="settings_account_security">Account security</string>
+
+    <!-- Preferences -->
+    <string name="settings_notifications">Notifications</string>
+    <string name="settings_push_alerts">Push &amp; alerts</string>
+    <string name="settings_dark_mode">Dark Mode</string>
+    <string name="settings_match_system_theme">Match system theme</string>
+    <string name="settings_language">Language</string>
+    <string name="settings_app_language">App language</string>
+
+    <!-- Support -->
+    <string name="settings_terms_policies">Terms &amp; Policies</string>
+    <string name="settings_privacy_terms">Privacy &amp; terms of service</string>
+    <string name="settings_about_healthmate">About HealthMate</string>
+    <string name="settings_mission_release_notes">Mission &amp; release notes</string>
+
+    <!-- Logout -->
+    <string name="settings_logout">Log Out</string>
+    <string name="settings_logout_description">Sign out of your HealthMate account</string>
+    <string name="settings_logout_accessibility">Log out</string>
+    <string name="settings_logout_confirmation_title">Log Out?</string>
+    <string name="settings_logout_confirmation_message">Are you sure you want to log out of HealthMate?</string>
+    <string name="settings_cancel">Cancel</string>
+
+    <!-- App Information -->
+    <string name="settings_app_version">HealthMate • Version 1.0.0</string>
+
+    <!-- Edit Profile Screen -->
+    <string name="edit_profile_back">Back</string>
+    <string name="edit_profile_picture">Profile picture</string>
+    <string name="edit_profile_change_picture">Change profile picture</string>
+    <string name="edit_profile_your_name">Your Name</string>
+
+    <!-- Personal Information -->
+    <string name="edit_profile_personal_information">Personal Information</string>
+    <string name="edit_profile_manage_identity">Manage your identity across HealthMate</string>
+
+    <!-- Input Fields -->
+    <string name="edit_profile_full_name">Full Name</string>
+    <string name="edit_profile_enter_full_name">Enter your full name</string>
+    <string name="edit_profile_email_address">Email Address</string>
+    <string name="edit_profile_enter_email">Enter your email</string>
+    <string name="edit_profile_username">Username</string>
+    <string name="edit_profile_enter_username">Enter username</string>
+
+    <!-- Account Information -->
+    <string name="edit_profile_account_information">Account Information</string>
+    <string name="edit_profile_member_since">Member Since</string>
+    <string name="edit_profile_member_date">October 2023</string>
+    <string name="edit_profile_time_ago">7 min ago</string>
+    <string name="edit_profile_account_status">Account Status</string>
+    <string name="edit_profile_standard_protected">Standard Protected</string>
+    <string name="edit_profile_active">Active</string>
+
+    <!-- Validation Messages -->
+    <string name="edit_profile_image_error">Unable to access the selected image.</string>
+    <string name="edit_profile_name_required">Please enter your full name.</string>
+    <string name="edit_profile_valid_email">Please enter a valid email address.</string>
+    <string name="edit_profile_username_required">Please enter a username.</string>
+
+    <!-- Action Buttons -->
+    <string name="edit_profile_save_changes">Save Changes</string>
+
+
+
+    <!-- Security & Privacy Screen -->
+    <string name="security_back">Back</string>
+
+    <!-- Change Password -->
+    <string name="security_change_password">Change Password</string>
+    <string name="security_password_description">Update your account credentials to keep health records safe.</string>
+    <string name="security_current_password">Current Password</string>
+    <string name="security_new_password">New Password</string>
+    <string name="security_confirm_new_password">Confirm New Password</string>
+    <string name="security_enter_password">Enter %1$s</string>
+    <string name="security_toggle_password_visibility">Toggle password visibility</string>
+    <string name="security_update_password">Update Password</string>
+
+    <!-- Password Validation -->
+    <string name="security_current_password_required">Please enter your current password.</string>
+    <string name="security_password_minimum_length">New password must contain at least 8 characters.</string>
+    <string name="security_password_must_be_different">New password must be different from the current password.</string>
+    <string name="security_passwords_do_not_match">New passwords do not match.</string>
+
+    <!-- Password Confirmation -->
+    <string name="security_password_updated">Password Updated</string>
+    <string name="security_ok">OK</string>
+
+    <!-- Login Devices -->
+    <string name="security_login_devices">Login Devices</string>
+    <string name="security_devices_description">Review all authenticated sessions for this account.</string>
+    <string name="security_android_device_details">Android %1$s • HealthMate • Logged in: %2$s</string>
+    <string name="security_unavailable">Unavailable</string>
+    <string name="security_active_now">Active now</string>
+    <string name="security_logged_in">Logged in</string>
+
+    <!-- Device Sign Out -->
+    <string name="security_sign_out">Sign Out</string>
+    <string name="security_sign_out_device_title">Sign Out Device?</string>
+    <string name="security_sign_out_device_message">Are you sure you want to sign out %1$s?</string>
+    <string name="security_cancel">Cancel</string>
+
+
+    <!-- Dashboard Header -->
+    <string name="dashboard_profile_picture">Profile picture</string>
+    <string name="dashboard_good_morning">Good Morning 👋</string>
+    <string name="dashboard_notifications">Notifications</string>
+
+    <!-- Daily Goal Banner -->
+    <string name="dashboard_daily_goal">YOUR DAILY GOAL</string>
+    <string name="dashboard_keep_moving">Keep Moving</string>
+    <string name="dashboard_goal_description">Every step counts towards a healthier you.</string>
+    <string name="dashboard_view_plan">View Plan</string>
+
+    <!-- Health Summary -->
+    <string name="dashboard_health_summary">Health Summary</string>
+    <string name="dashboard_details">Details</string>
+
+    <!-- Steps Card -->
+    <string name="dashboard_steps">STEPS</string>
+    <string name="dashboard_steps_accessibility">Steps</string>
+    <string name="dashboard_steps_goal">⚑ of 10,000 steps</string>
+
+    <!-- Water Card -->
+    <string name="dashboard_water">Water</string>
+    <string name="dashboard_water_accessibility">Water intake</string>
+    <string name="dashboard_goal_percentage">%1$d%% Goal</string>
+    <string name="dashboard_water_goal">of 2,000 ml</string>
+
+    <!-- Calories Card -->
+    <string name="dashboard_calories">Calories</string>
+    <string name="dashboard_calories_accessibility">Calories</string>
+    <string name="dashboard_active">Active</string>
+    <string name="dashboard_daily_activity">Daily activity</string>
+
+    <!-- Heart Rate Card -->
+    <string name="dashboard_heart_rate">Heart Rate</string>
+    <string name="dashboard_heart_rate_accessibility">Heart rate</string>
+    <string name="dashboard_syncing">Syncing</string>
+    <string name="dashboard_simulated_reading">Simulated reading</string>
+    <string name="dashboard_no_reading">No reading available</string>
+    <string name="dashboard_bpm">%1$d bpm</string>
+    <string name="dashboard_no_bpm_reading">-- bpm</string>
+
+    <!-- Weekly Health Log -->
+    <string name="dashboard_weekly_health_log">Weekly Health Log</string>
+    <string name="dashboard_weekly_records">%1$d records logged this week</string>
+    <string name="dashboard_weekly_log_accessibility">Weekly health log</string>
+    <string name="dashboard_view">View</string>
+
+
+    <!-- Health Records Screen -->
+    <string name="health_records_title">Health Records</string>
+    <string name="health_records_subtitle">Daily vitals &amp; activity telemetry</string>
+    <string name="health_records_add">Add new record</string>
+
+    <!-- Search -->
+    <string name="health_records_search_placeholder">Search date (yyyy-MM-dd)</string>
+    <string name="health_records_search_accessibility">Search health records</string>
+
+    <!-- Records Header -->
+    <string name="health_records_search_results">Search Results</string>
+    <string name="health_records_saved_records">Saved Records</string>
+    <string name="health_records_count">%1$d records</string>
+    <string name="health_records_clear">Clear</string>
+
+    <!-- Record Actions -->
+    <string name="health_records_edit">Edit record</string>
+    <string name="health_records_delete">Delete record</string>
+    <string name="health_records_view_details">View Details</string>
+
+    <!-- Health Metrics -->
+    <string name="health_records_steps">Steps</string>
+    <string name="health_records_calories">kcal</string>
+    <string name="health_records_water">ml</string>
+
+    <!-- Empty State -->
+    <string name="health_records_empty_title">No Health Records Yet</string>
+    <string name="health_records_empty_description">Start tracking your daily activities by adding your first health record.</string>
+
+
+    <!-- Communities Screen -->
+    <string name="communities_title">Communities</string>
+    <string name="communities_subtitle">Connect, share and grow healthier together.</string>
+    <string name="communities_create">Create Community</string>
+
+    <!-- Categories -->
+    <string name="communities_explore_categories">Explore Categories</string>
+    <string name="communities_view_all">View all</string>
+    <string name="communities_fitness">Fitness</string>
+    <string name="communities_nutrition">Nutrition</string>
+    <string name="communities_mindfulness">Mindfulness</string>
+    <string name="communities_wellness">Wellness</string>
+    <string name="communities_lifestyle">Lifestyle</string>
+
+    <!-- Popular Communities -->
+    <string name="communities_popular">Popular Communities</string>
+    <string name="communities_view_community">View Community</string>
+
+    <!-- Empty State -->
+    <string name="communities_empty_title">No Communities Found</string>
+    <string name="communities_empty_description">Try exploring another category.</string>
+
 </resources>

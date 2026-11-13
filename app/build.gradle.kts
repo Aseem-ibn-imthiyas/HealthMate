@@ -45,6 +45,8 @@ dependencies {
     implementation(libs.androidx.compose.ui.graphics)
     implementation(libs.androidx.compose.ui.tooling.preview)
     implementation(libs.androidx.core.ktx)
+    // Application Language Management
+    implementation("androidx.appcompat:appcompat:1.7.1")
     implementation(libs.androidx.lifecycle.runtime.ktx)
     testImplementation(libs.junit)
     //androidTestImplementation(platform(libs.androidx.compose.bom))
@@ -70,5 +72,7 @@ dependencies {
 
     implementation(libs.androidx.lifecycle.viewmodel.compose)
     implementation(libs.androidx.lifecycle.runtime.compose)
+
+
 
 }

@@ -62,6 +62,39 @@ class UserRepository(
         )
     }
 
+    // UPDATE - Save profile information
+    suspend fun updateProfile(
+        userId: Int,
+        fullName: String,
+        email: String,
+        profileImageUri: String?
+    ): User? {
+
+        val normalizedEmail = email.trim().lowercase()
+
+        // Check whether another account uses this email
+        val existingUser = userDao.getUserByEmail(normalizedEmail)
+
+        if (existingUser != null && existingUser.id != userId) {
+            return null
+        }
+
+        // Retrieve the existing account
+        val currentUser = userDao.getUserById(userId)
+            ?: return null
+
+        // Preserve password and other account information
+        val updatedUser = currentUser.copy(
+            fullName = fullName.trim(),
+            email = normalizedEmail,
+            profileImageUri = profileImageUri
+        )
+
+        userDao.updateUser(updatedUser)
+
+        return updatedUser
+    }
+
     // DELETE - Remove user account
     suspend fun deleteUser(
         userId: Int

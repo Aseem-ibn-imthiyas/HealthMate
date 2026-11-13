@@ -43,6 +43,10 @@ import androidx.compose.foundation.Canvas
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.res.stringResource
+import coil.compose.AsyncImage
+import androidx.compose.ui.layout.ContentScale
+import com.healthmate.ui.notifications.model.NotificationUiModel
 
 private val BackgroundColor = Color(0xFFF7F8FF)
 private val PrimaryBlue = Color(0xFF2563EB)
@@ -54,11 +58,20 @@ private val CardBorder = Color(0xFFE2EAF7)
 
 @Composable
 fun DashboardScreen(
+    userFullName: String = "",
+    userProfileImageUri: String? = null,
 
     todaySteps: Int = 0,
     todayCalories: Int = 0,
     todayWater: Int = 0,
     weeklyRecordCount: Int = 0,
+
+    notifications: List<NotificationUiModel> = emptyList(),
+    unreadNotificationCount: Int = 0,
+    onMarkNotificationAsRead: (Int) -> Unit = {},
+    onMarkAllNotificationsAsRead: () -> Unit = {},
+    onDeleteNotification: (Int) -> Unit = {},
+
     onNotificationClick: () -> Unit = {},
     onViewPlanClick: () -> Unit = {},
     onDetailsClick: () -> Unit = {},
@@ -72,10 +85,13 @@ fun DashboardScreen(
     val heartRateViewModel: HeartRateViewModel = viewModel()
     val heartRate by heartRateViewModel.heartRate.collectAsState()
 
+
+
+
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .background(BackgroundColor)
+            .background(MaterialTheme.colorScheme.background)
             .statusBarsPadding()
     ) {
         Column(
@@ -90,6 +106,9 @@ fun DashboardScreen(
 
             // User Header
             DashboardHeader(
+                userFullName = userFullName,
+                userProfileImageUri = userProfileImageUri,
+                unreadNotificationCount = unreadNotificationCount,
                 onNotificationClick = {
                     showNotifications = true
                 }
@@ -111,10 +130,10 @@ fun DashboardScreen(
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
                 Text(
-                    text = "Health Summary",
+                    text = stringResource(R.string.dashboard_health_summary),
                     fontSize = 21.sp,
                     fontWeight = FontWeight.Bold,
-                    color = Color(0xFF183C75)
+                    color = MaterialTheme.colorScheme.onBackground
                 )
 
                 TextButton(
@@ -122,10 +141,10 @@ fun DashboardScreen(
                     contentPadding = PaddingValues(0.dp)
                 ) {
                     Text(
-                        text = "Details",
+                        text = stringResource(R.string.dashboard_details),
                         fontSize = 12.sp,
                         fontWeight = FontWeight.Bold,
-                        color = PrimaryBlue
+                        color = MaterialTheme.colorScheme.primary
                     )
 
                     Icon(
@@ -189,9 +208,13 @@ fun DashboardScreen(
             onDismiss = {
                 showNotifications = false
             },
+            notifications = notifications,
+            onMarkAsRead = onMarkNotificationAsRead,
+            onMarkAllAsRead = onMarkAllNotificationsAsRead,
+            onDeleteNotification = onDeleteNotification,
             onNotificationClick = { notification ->
 
-                // Notification navigation logic will be implemented later.
+                // Notification navigation will be implemented later.
 
             }
         )
@@ -200,6 +223,9 @@ fun DashboardScreen(
 
 @Composable
 private fun DashboardHeader(
+    userFullName: String,
+    userProfileImageUri: String?,
+    unreadNotificationCount: Int,
     onNotificationClick: () -> Unit
 ) {
     Row(
@@ -209,15 +235,26 @@ private fun DashboardHeader(
 
         // Profile Image
         Box {
-            Image(
-                painter = painterResource(
-                    id = R.drawable.profile_avatar
-                ),
-                contentDescription = "Profile picture",
-                modifier = Modifier
-                    .size(48.dp)
-                    .clip(CircleShape)
-            )
+            if (!userProfileImageUri.isNullOrBlank()) {
+                AsyncImage(
+                    model = userProfileImageUri,
+                    contentDescription = stringResource(R.string.dashboard_profile_picture),
+                    contentScale = ContentScale.Crop,
+                    modifier = Modifier
+                        .size(48.dp)
+                        .clip(CircleShape)
+                )
+            } else {
+                Image(
+                    painter = painterResource(
+                        id = R.drawable.profile_avatar
+                    ),
+                    contentDescription = stringResource(R.string.dashboard_profile_picture),
+                    modifier = Modifier
+                        .size(48.dp)
+                        .clip(CircleShape)
+                )
+            }
 
             Box(
                 modifier = Modifier
@@ -229,7 +266,7 @@ private fun DashboardHeader(
                     )
                     .border(
                         2.dp,
-                        Color.White,
+                        MaterialTheme.colorScheme.surface,
                         CircleShape
                     )
             )
@@ -241,39 +278,72 @@ private fun DashboardHeader(
             modifier = Modifier.weight(1f)
         ) {
             Text(
-                text = "Good Morning 👋",
+                text = stringResource(R.string.dashboard_good_morning),
                 fontSize = 12.sp,
-                color = SecondaryColor
+                color = MaterialTheme.colorScheme.onSurfaceVariant
             )
 
             Spacer(modifier = Modifier.height(3.dp))
 
             Text(
-                text = "Mohamed Aseem",
+                text = userFullName.ifBlank { "HealthMate User" },
                 fontSize = 20.sp,
                 fontWeight = FontWeight.Bold,
-                color = Color(0xFF351078)
+                color = MaterialTheme.colorScheme.onSurface
             )
         }
 
         // Notification Button
-        IconButton(
-            onClick = onNotificationClick,
-            modifier = Modifier
-                .size(44.dp)
-                .shadow(
-                    5.dp,
-                    CircleShape,
-                    ambientColor = Color(0xFFB7C9E8).copy(alpha = 0.15f)
+        Box {
+
+            IconButton(
+                onClick = onNotificationClick,
+                modifier = Modifier
+                    .size(44.dp)
+                    .shadow(
+                        5.dp,
+                        CircleShape,
+                        ambientColor = Color(0xFFB7C9E8).copy(alpha = 0.15f)
+                    )
+                    .background(
+                        MaterialTheme.colorScheme.surface,
+                        CircleShape
+                    )
+            ) {
+                Icon(
+                    imageVector = Icons.Default.NotificationsNone,
+                    contentDescription = stringResource(R.string.dashboard_notifications),
+                    tint = MaterialTheme.colorScheme.onSurface,
+                    modifier = Modifier.size(22.dp)
                 )
-                .background(Color.White, CircleShape)
-        ) {
-            Icon(
-                imageVector = Icons.Default.NotificationsNone,
-                contentDescription = "Notifications",
-                tint = Color(0xFF173B70),
-                modifier = Modifier.size(22.dp)
-            )
+            }
+
+            if (unreadNotificationCount > 0) {
+                Box(
+                    modifier = Modifier
+                        .align(Alignment.TopEnd)
+                        .size(17.dp)
+                        .background(
+                            Color(0xFFEF4444),
+                            CircleShape
+                        ),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Text(
+                        text = if (unreadNotificationCount > 9) {
+                            "9+"
+                        } else {
+                            unreadNotificationCount.toString()
+                        },
+                        modifier = Modifier.fillMaxSize(),
+                        color = Color.White,
+                        fontSize = 9.sp,
+                        lineHeight = 17.sp,
+                        fontWeight = FontWeight.Bold,
+                        textAlign = androidx.compose.ui.text.style.TextAlign.Center
+                    )
+                }
+            }
         }
     }
 }
@@ -342,7 +412,7 @@ private fun DailyGoalBanner(
                     Spacer(modifier = Modifier.width(6.dp))
 
                     Text(
-                        text = "YOUR DAILY GOAL",
+                        text = stringResource(R.string.dashboard_daily_goal),
                         fontSize = 9.sp,
                         fontWeight = FontWeight.Bold,
                         color = Color.White
@@ -352,7 +422,7 @@ private fun DailyGoalBanner(
                 Spacer(modifier = Modifier.height(8.dp))
 
                 Text(
-                    text = "Keep Moving",
+                    text = stringResource(R.string.dashboard_keep_moving),
                     fontSize = 22.sp,
                     fontWeight = FontWeight.Bold,
                     color = Color.White
@@ -361,7 +431,7 @@ private fun DailyGoalBanner(
                 Spacer(modifier = Modifier.height(5.dp))
 
                 Text(
-                    text = "Every step counts towards a healthier you.",
+                    text = stringResource(R.string.dashboard_goal_description),
                     fontSize = 12.sp,
                     lineHeight = 18.sp,
                     color = Color(0xFFE8F0FF)
@@ -386,7 +456,7 @@ private fun DailyGoalBanner(
                 )
             ) {
                 Text(
-                    text = "View Plan",
+                    text = stringResource(R.string.dashboard_view_plan),
                     fontSize = 11.sp,
                     fontWeight = FontWeight.SemiBold
                 )
@@ -454,7 +524,7 @@ private fun StepsCard(
             ) {
                 Icon(
                     imageVector = Icons.AutoMirrored.Filled.DirectionsWalk,
-                    contentDescription = "Steps",
+                    contentDescription = stringResource(R.string.dashboard_steps_accessibility),
                     tint = Color.White,
                     modifier = Modifier.size(22.dp)
                 )
@@ -481,7 +551,7 @@ private fun StepsCard(
 
         Column {
             Text(
-                text = "STEPS",
+                text = stringResource(R.string.dashboard_steps),
                 fontSize = 11.sp,
                 color = Color.White
             )
@@ -494,7 +564,7 @@ private fun StepsCard(
             )
 
             Text(
-                text = "⚑ of 10,000 steps",
+                text = stringResource(R.string.dashboard_steps_goal),
                 fontSize = 11.sp,
                 color = Color(0xFFDCE8FF)
             )
@@ -511,10 +581,10 @@ private fun WaterCard(
         modifier = modifier
             .height(174.dp)
             .clip(RoundedCornerShape(21.dp))
-            .background(Color.White)
+            .background(MaterialTheme.colorScheme.surface)
             .border(
                 1.dp,
-                CardBorder,
+                MaterialTheme.colorScheme.outlineVariant,
                 RoundedCornerShape(21.dp)
             )
             .padding(16.dp),
@@ -530,23 +600,26 @@ private fun WaterCard(
                 modifier = Modifier
                     .size(37.dp)
                     .background(
-                        Color(0xFFEEF8FF),
+                        MaterialTheme.colorScheme.surfaceVariant,
                         RoundedCornerShape(12.dp)
                     ),
                 contentAlignment = Alignment.Center
             ) {
                 Icon(
                     imageVector = Icons.Default.WaterDrop,
-                    contentDescription = "Water intake",
+                    contentDescription = stringResource(R.string.dashboard_water_accessibility),
                     tint = Color(0xFF31B8EE),
                     modifier = Modifier.size(20.dp)
                 )
             }
 
             SmallStatusTag(
-                text = "${(water * 100 / 2000).coerceAtMost(100)}% Goal",
+                text = stringResource(
+                    R.string.dashboard_goal_percentage,
+                    (water * 100 / 2000).coerceAtMost(100)
+                ),
                 color = Color(0xFF24B9F2),
-                background = Color(0xFFEEF9FF)
+                background = MaterialTheme.colorScheme.surfaceVariant
             )
         }
 
@@ -558,28 +631,28 @@ private fun WaterCard(
                     .height(5.dp)
                     .clip(CircleShape),
                 color = Color(0xFF31B8EE),
-                trackColor = Color(0xFFEEF1F6)
+                trackColor = MaterialTheme.colorScheme.surfaceVariant
             )
 
             Spacer(modifier = Modifier.height(17.dp))
 
             Text(
-                text = "Water",
+                text = stringResource(R.string.dashboard_water),
                 fontSize = 11.sp,
-                color = SecondaryColor
+                color = MaterialTheme.colorScheme.onSurfaceVariant
             )
 
             Text(
                 text = "%,d ml".format(water),
                 fontSize = 24.sp,
                 fontWeight = FontWeight.Bold,
-                color = Color(0xFF183C75)
+                color = MaterialTheme.colorScheme.onSurface
             )
 
             Text(
-                text = "of 2,000 ml",
+                text = stringResource(R.string.dashboard_water_goal),
                 fontSize = 11.sp,
-                color = SecondaryColor
+                color = MaterialTheme.colorScheme.onSurfaceVariant
             )
         }
     }
@@ -594,10 +667,10 @@ private fun CaloriesCard(
         modifier = modifier
             .height(174.dp)
             .clip(RoundedCornerShape(21.dp))
-            .background(Color.White)
+            .background(MaterialTheme.colorScheme.surface)
             .border(
                 1.dp,
-                CardBorder,
+                MaterialTheme.colorScheme.outlineVariant,
                 RoundedCornerShape(21.dp)
             )
             .padding(16.dp),
@@ -613,23 +686,23 @@ private fun CaloriesCard(
                 modifier = Modifier
                     .size(37.dp)
                     .background(
-                        Color(0xFFFFF3EF),
+                        MaterialTheme.colorScheme.surfaceVariant,
                         RoundedCornerShape(12.dp)
                     ),
                 contentAlignment = Alignment.Center
             ) {
                 Icon(
                     imageVector = Icons.Default.LocalFireDepartment,
-                    contentDescription = "Calories",
+                    contentDescription = stringResource(R.string.dashboard_calories_accessibility),
                     tint = Color(0xFFFF7043),
                     modifier = Modifier.size(21.dp)
                 )
             }
 
             SmallStatusTag(
-                text = "Active",
+                text = stringResource(R.string.dashboard_active),
                 color = Color(0xFFFF7043),
-                background = Color(0xFFFFF5EF)
+                background = MaterialTheme.colorScheme.surfaceVariant
             )
         }
 
@@ -641,28 +714,28 @@ private fun CaloriesCard(
                     .height(5.dp)
                     .clip(CircleShape),
                 color = Color(0xFFFF7043),
-                trackColor = Color(0xFFEEF1F6)
+                trackColor = MaterialTheme.colorScheme.surfaceVariant
             )
 
             Spacer(modifier = Modifier.height(17.dp))
 
             Text(
-                text = "Calories",
+                text = stringResource(R.string.dashboard_calories),
                 fontSize = 11.sp,
-                color = SecondaryColor
+                color = MaterialTheme.colorScheme.onSurfaceVariant
             )
 
             Text(
                 text = "$calories kcal",
                 fontSize = 24.sp,
                 fontWeight = FontWeight.Bold,
-                color = Color(0xFF183C75)
+                color = MaterialTheme.colorScheme.onSurface
             )
 
             Text(
-                text = "Daily activity",
+                text = stringResource(R.string.dashboard_daily_activity),
                 fontSize = 11.sp,
-                color = SecondaryColor
+                color = MaterialTheme.colorScheme.onSurfaceVariant
             )
         }
     }
@@ -678,10 +751,10 @@ private fun HeartRateCard(
         modifier = modifier
             .height(174.dp)
             .clip(RoundedCornerShape(21.dp))
-            .background(Color.White)
+            .background(MaterialTheme.colorScheme.surface)
             .border(
                 1.dp,
-                CardBorder,
+                MaterialTheme.colorScheme.outlineVariant,
                 RoundedCornerShape(21.dp)
             )
             .padding(16.dp),
@@ -697,23 +770,23 @@ private fun HeartRateCard(
                 modifier = Modifier
                     .size(37.dp)
                     .background(
-                        Color(0xFFF3F0FF),
+                        MaterialTheme.colorScheme.surfaceVariant,
                         RoundedCornerShape(12.dp)
                     ),
                 contentAlignment = Alignment.Center
             ) {
                 Icon(
                     imageVector = Icons.Default.Favorite,
-                    contentDescription = "Heart rate",
+                    contentDescription = stringResource(R.string.dashboard_heart_rate_accessibility),
                     tint = Color(0xFF8670E9),
                     modifier = Modifier.size(20.dp)
                 )
             }
 
             SmallStatusTag(
-                text = if (bpm != null) "Syncing" else "Syncing",
-                color = SecondaryColor,
-                background = Color(0xFFF1F4F8)
+                text = stringResource(R.string.dashboard_syncing),
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                background = MaterialTheme.colorScheme.surfaceVariant
             )
         }
 
@@ -723,22 +796,30 @@ private fun HeartRateCard(
             Spacer(modifier = Modifier.height(10.dp))
 
             Text(
-                text = "Heart Rate",
+                text = stringResource(R.string.dashboard_heart_rate),
                 fontSize = 11.sp,
-                color = SecondaryColor
+                color = MaterialTheme.colorScheme.onSurfaceVariant
             )
 
             Text(
-                text = bpm?.let { "$it bpm" } ?: "-- bpm",
+                text = bpm?.let {
+                    stringResource(R.string.dashboard_bpm, it)
+                } ?: stringResource(R.string.dashboard_no_bpm_reading),
                 fontSize = 18.sp,
                 fontWeight = FontWeight.Bold,
-                color = Color(0xFF52627A)
+                color = MaterialTheme.colorScheme.onSurface
             )
 
             Text(
-                text = if (bpm != null) "Simulated reading" else "No reading available",
+                text = stringResource(
+                    if (bpm != null) {
+                        R.string.dashboard_simulated_reading
+                    } else {
+                        R.string.dashboard_no_reading
+                    }
+                ),
                 fontSize = 10.sp,
-                color = Color(0xFF91A4C0)
+                color = MaterialTheme.colorScheme.onSurfaceVariant
             )
         }
     }
@@ -832,10 +913,10 @@ private fun WeeklyHealthLog(
             .fillMaxWidth()
             .height(66.dp)
             .clip(RoundedCornerShape(18.dp))
-            .background(Color.White)
+            .background(MaterialTheme.colorScheme.surface)
             .border(
                 1.dp,
-                CardBorder,
+                MaterialTheme.colorScheme.outlineVariant,
                 RoundedCornerShape(18.dp)
             )
             .padding(horizontal = 13.dp),
@@ -846,14 +927,16 @@ private fun WeeklyHealthLog(
             modifier = Modifier
                 .size(38.dp)
                 .background(
-                    Color(0xFFEEF5FF),
+                    MaterialTheme.colorScheme.surfaceVariant,
                     RoundedCornerShape(12.dp)
                 ),
             contentAlignment = Alignment.Center
         ) {
             Icon(
                 imageVector = Icons.Default.Description,
-                contentDescription = "Weekly health log",
+                contentDescription = stringResource(
+                    R.string.dashboard_weekly_log_accessibility
+                ),
                 tint = PrimaryBlue,
                 modifier = Modifier.size(21.dp)
             )
@@ -865,16 +948,19 @@ private fun WeeklyHealthLog(
             modifier = Modifier.weight(1f)
         ) {
             Text(
-                text = "Weekly Health Log",
+                text = stringResource(R.string.dashboard_weekly_health_log),
                 fontSize = 11.sp,
                 fontWeight = FontWeight.Bold,
-                color = Color(0xFF183C75)
+                color = MaterialTheme.colorScheme.onSurface
             )
 
             Text(
-                text = "$recordCount records logged this week",
+                text = stringResource(
+                    R.string.dashboard_weekly_records,
+                    recordCount
+                ),
                 fontSize = 10.sp,
-                color = SecondaryColor
+                color = MaterialTheme.colorScheme.onSurfaceVariant
             )
         }
 
@@ -883,16 +969,16 @@ private fun WeeklyHealthLog(
             modifier = Modifier
                 .height(36.dp)
                 .background(
-                    Color(0xFFEEF5FF),
+                    MaterialTheme.colorScheme.surfaceVariant,
                     RoundedCornerShape(12.dp)
                 ),
             contentPadding = PaddingValues(horizontal = 12.dp)
         ) {
             Text(
-                text = "View",
+                text = stringResource(R.string.dashboard_view),
                 fontSize = 11.sp,
                 fontWeight = FontWeight.Bold,
-                color = PrimaryBlue
+                color = MaterialTheme.colorScheme.primary
             )
         }
     }

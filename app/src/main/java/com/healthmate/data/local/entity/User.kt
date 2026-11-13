@@ -27,5 +27,7 @@ data class User(
 
     val passwordSalt: String,
 
-    val createdAt: String
+    val createdAt: String,
+
+    val profileImageUri: String? = null
 )

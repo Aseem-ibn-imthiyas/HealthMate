@@ -13,5 +13,8 @@ data class CommunityPostUiModel(
     val likes: Int,
     val comments: Int,
     val shares: Int,
-    val isLiked: Boolean = false
+    val isLiked: Boolean = false,
+    val authorProfileImageUri: String? = null,
+    val postImageUri: String? = null,
+    val userId: Int = 0
 )

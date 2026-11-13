@@ -27,6 +27,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.healthmate.R
 import com.healthmate.ui.communities.model.CommunityUiModel
+import androidx.compose.ui.res.stringResource
 
 private val CommunityBackground = Color(0xFFF7F8FF)
 private val CommunityBlue = Color(0xFF0755D9)
@@ -34,20 +35,43 @@ private val CommunityHeading = Color(0xFF102641)
 private val CommunitySecondary = Color(0xFF454C60)
 
 private data class CommunityCategory(
+    val key: String,
     val name: String,
     val icon: ImageVector
 )
 
-private val communityCategories = listOf(
-    CommunityCategory("Fitness", Icons.Default.FitnessCenter),
-    CommunityCategory("Nutrition", Icons.Default.Spa),
-    CommunityCategory("Mindfulness", Icons.Default.SelfImprovement),
-    CommunityCategory("Wellness", Icons.Default.Favorite),
-    CommunityCategory("Lifestyle", Icons.Default.SentimentSatisfied)
+@Composable
+private fun getCommunityCategories() = listOf(
+    CommunityCategory(
+        "Fitness",
+        stringResource(R.string.communities_fitness),
+        Icons.Default.FitnessCenter
+    ),
+    CommunityCategory(
+        "Nutrition",
+        stringResource(R.string.communities_nutrition),
+        Icons.Default.Spa
+    ),
+    CommunityCategory(
+        "Mindfulness",
+        stringResource(R.string.communities_mindfulness),
+        Icons.Default.SelfImprovement
+    ),
+    CommunityCategory(
+        "Wellness",
+        stringResource(R.string.communities_wellness),
+        Icons.Default.Favorite
+    ),
+    CommunityCategory(
+        "Lifestyle",
+        stringResource(R.string.communities_lifestyle),
+        Icons.Default.SentimentSatisfied
+    )
 )
 
 @Composable
 fun CommunitiesScreen(
+    communities: List<CommunityUiModel> = emptyList(),
     onCreateCommunityClick: () -> Unit = {},
     onViewAllCategoriesClick: () -> Unit = {},
     onCommunityClick: (CommunityUiModel) -> Unit = {},
@@ -58,47 +82,9 @@ fun CommunitiesScreen(
         mutableStateOf<String?>(null)
     }
 
-    val communities = remember {
-        listOf(
-            CommunityUiModel(
-                id = 1,
-                name = "Daily Fitness Club",
-                category = "Fitness",
-                description = "Building active habits and celebrating daily steps together with weekly leaderboard challenges and",
-                imageRes = R.drawable.community_fitness,
-                badge = "Trending",
-                badgeIcon = "🔥",
-                imageCaption = "Weekly Milestone: 100k Steps",
-                memberCount = "12.4k members",
-                status = "Rank #1",
-                isTrending = true
-            ),
-            CommunityUiModel(
-                id = 2,
-                name = "Healthy Eating Circle",
-                category = "Nutrition",
-                description = "Sharing wholesome recipes, clean meal-prep ideas, macro-friendly tips, and dietitian-approved",
-                imageRes = R.drawable.community_nutrition,
-                badge = "Nutrition",
-                badgeIcon = "◉",
-                imageCaption = "New recipes posted daily",
-                memberCount = "8.7k members",
-                status = "Active Now"
-            ),
-            CommunityUiModel(
-                id = 3,
-                name = "Mindful Living",
-                category = "Mindfulness",
-                description = "Daily breathwork routines, stress reduction practices, gratitude journals, and live guided...",
-                imageRes = R.drawable.community_mindfulness,
-                badge = "Daily Zen",
-                badgeIcon = "♧",
-                imageCaption = "Live Meditation @ 8:00 AM",
-                memberCount = "6.2k members",
-                status = "Guided"
-            )
-        )
-    }
+    val communityCategories = getCommunityCategories()
+
+    // All three hardcoded CommunityUiModel entries
 
     val filteredCommunities = communities.filter {
         selectedCategory == null || it.category == selectedCategory
@@ -107,7 +93,7 @@ fun CommunitiesScreen(
     Column(
         modifier = modifier
             .fillMaxSize()
-            .background(CommunityBackground)
+            .background(MaterialTheme.colorScheme.background)
             .statusBarsPadding()
     ) {
 
@@ -128,16 +114,16 @@ fun CommunitiesScreen(
                 modifier = Modifier.weight(1f)
             ) {
                 Text(
-                    text = "Communities",
+                    text = stringResource(R.string.communities_title),
                     fontSize = 20.sp,
                     fontWeight = FontWeight.Bold,
-                    color = CommunityHeading
+                    color = MaterialTheme.colorScheme.onBackground
                 )
 
                 Text(
-                    text = "Connect, share and grow healthier together.",
+                    text = stringResource(R.string.communities_subtitle),
                     fontSize = 11.sp,
-                    color = CommunitySecondary
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
             }
 
@@ -145,11 +131,11 @@ fun CommunitiesScreen(
                 onClick = onCreateCommunityClick,
                 modifier = Modifier
                     .size(48.dp)
-                    .background(CommunityBlue, CircleShape)
+                    .background(MaterialTheme.colorScheme.primary, CircleShape)
             ) {
                 Icon(
                     imageVector = Icons.Default.Add,
-                    contentDescription = "Create Community",
+                    contentDescription = stringResource(R.string.communities_create),
                     tint = Color.White,
                     modifier = Modifier.size(25.dp)
                 )
@@ -168,19 +154,19 @@ fun CommunitiesScreen(
             verticalAlignment = Alignment.CenterVertically
         ) {
             Text(
-                text = "Explore Categories",
+                text = stringResource(R.string.communities_explore_categories),
                 fontSize = 17.sp,
                 fontWeight = FontWeight.SemiBold,
-                color = CommunityHeading
+                color = MaterialTheme.colorScheme.onBackground
             )
 
             Spacer(modifier = Modifier.weight(1f))
 
             Text(
-                text = "View all",
+                text = stringResource(R.string.communities_view_all),
                 fontSize = 13.sp,
                 fontWeight = FontWeight.Medium,
-                color = CommunityBlue,
+                color = MaterialTheme.colorScheme.primary,
                 modifier = Modifier.clickable {
                     onViewAllCategoriesClick()
                 }
@@ -197,13 +183,13 @@ fun CommunitiesScreen(
 
                 CommunityCategoryItem(
                     category = category,
-                    selected = selectedCategory == category.name,
+                    selected = selectedCategory == category.key,
                     onClick = {
                         selectedCategory =
-                            if (selectedCategory == category.name) {
+                            if (selectedCategory == category.key) {
                                 null
                             } else {
-                                category.name
+                                category.key
                             }
                     }
                 )
@@ -223,13 +209,15 @@ fun CommunitiesScreen(
         ) {
             Text(
                 text = if (selectedCategory == null) {
-                    "Popular Communities"
+                    stringResource(R.string.communities_popular)
                 } else {
-                    selectedCategory!!
+                    communityCategories.firstOrNull {
+                        it.key == selectedCategory
+                    }?.name ?: selectedCategory!!
                 },
                 fontSize = 17.sp,
                 fontWeight = FontWeight.SemiBold,
-                color = CommunityHeading
+                color = MaterialTheme.colorScheme.onBackground
             )
         }
 
@@ -277,15 +265,15 @@ private fun CommunityCategoryItem(
     onClick: () -> Unit
 ) {
     val background = if (selected) {
-        Color(0xFF0755D9)
+        MaterialTheme.colorScheme.primary
     } else {
-        Color(0xFFE7EEFD)
+        MaterialTheme.colorScheme.surfaceVariant
     }
 
     val tint = if (selected) {
-        Color.White
+        MaterialTheme.colorScheme.onPrimary
     } else {
-        Color(0xFF315B9B)
+        MaterialTheme.colorScheme.onSurfaceVariant
     }
 
     Column(
@@ -316,7 +304,7 @@ private fun CommunityCategoryItem(
             text = category.name,
             fontSize = 11.sp,
             fontWeight = FontWeight.Medium,
-            color = CommunityHeading,
+            color = MaterialTheme.colorScheme.onBackground,
             maxLines = 1
         )
     }
@@ -331,7 +319,7 @@ private fun CommunityCard(
         modifier = Modifier
             .fillMaxWidth()
             .clip(RoundedCornerShape(19.dp))
-            .background(Color.White)
+            .background(MaterialTheme.colorScheme.surface)
     ) {
 
         // Cover Image
@@ -366,7 +354,7 @@ private fun CommunityCard(
                 modifier = Modifier
                     .padding(12.dp)
                     .clip(CircleShape)
-                    .background(Color.White)
+                    .background(MaterialTheme.colorScheme.surface)
                     .padding(
                         horizontal = 11.dp,
                         vertical = 6.dp
@@ -384,7 +372,7 @@ private fun CommunityCard(
                     text = community.badge,
                     fontSize = 10.sp,
                     fontWeight = FontWeight.SemiBold,
-                    color = CommunityHeading
+                    color = MaterialTheme.colorScheme.onBackground
                 )
             }
 
@@ -417,14 +405,14 @@ private fun CommunityCard(
                     text = community.name,
                     fontSize = 16.sp,
                     fontWeight = FontWeight.Bold,
-                    color = CommunityHeading,
+                    color = MaterialTheme.colorScheme.onBackground,
                     modifier = Modifier.weight(1f)
                 )
 
                 Box(
                     modifier = Modifier
                         .clip(CircleShape)
-                        .background(Color(0xFFE7F0FF))
+                        .background(MaterialTheme.colorScheme.surfaceVariant)
                         .padding(
                             horizontal = 9.dp,
                             vertical = 4.dp
@@ -434,7 +422,7 @@ private fun CommunityCard(
                         text = community.status,
                         fontSize = 10.sp,
                         fontWeight = FontWeight.Medium,
-                        color = CommunityBlue
+                        color = MaterialTheme.colorScheme.primary
                     )
                 }
             }
@@ -445,7 +433,7 @@ private fun CommunityCard(
                 text = community.description,
                 fontSize = 13.sp,
                 lineHeight = 22.sp,
-                color = CommunitySecondary,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
                 maxLines = 2,
                 overflow = TextOverflow.Ellipsis
             )
@@ -461,7 +449,7 @@ private fun CommunityCard(
                 Icon(
                     imageVector = Icons.Default.Groups,
                     contentDescription = null,
-                    tint = CommunityBlue,
+                    tint = MaterialTheme.colorScheme.primary,
                     modifier = Modifier.size(18.dp)
                 )
 
@@ -470,14 +458,14 @@ private fun CommunityCard(
                 Text(
                     text = community.memberCount,
                     fontSize = 11.sp,
-                    color = CommunitySecondary,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
                     modifier = Modifier.weight(1f)
                 )
 
                 Surface(
                     onClick = onClick,
                     shape = CircleShape,
-                    color = Color(0xFFD9E7FA)
+                    color = MaterialTheme.colorScheme.surfaceVariant
                 ) {
                     Row(
                         modifier = Modifier.padding(
@@ -487,10 +475,10 @@ private fun CommunityCard(
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         Text(
-                            text = "View Community",
+                            text = stringResource(R.string.communities_view_community),
                             fontSize = 11.sp,
                             fontWeight = FontWeight.SemiBold,
-                            color = CommunityHeading
+                            color = MaterialTheme.colorScheme.onBackground
                         )
 
                         Spacer(modifier = Modifier.width(5.dp))
@@ -498,7 +486,7 @@ private fun CommunityCard(
                         Icon(
                             imageVector = Icons.Default.ArrowForward,
                             contentDescription = null,
-                            tint = CommunityHeading,
+                            tint = MaterialTheme.colorScheme.onSurface,
                             modifier = Modifier.size(15.dp)
                         )
                     }
@@ -529,18 +517,18 @@ private fun EmptyCommunityState(
         Spacer(modifier = Modifier.height(14.dp))
 
         Text(
-            text = "No Communities Found",
+            text = stringResource(R.string.communities_empty_title),
             fontSize = 17.sp,
             fontWeight = FontWeight.Bold,
-            color = CommunityHeading
+            color = MaterialTheme.colorScheme.onBackground
         )
 
         Spacer(modifier = Modifier.height(6.dp))
 
         Text(
-            text = "Try exploring another category.",
+            text = stringResource(R.string.communities_empty_description),
             fontSize = 12.sp,
-            color = CommunitySecondary
+            color = MaterialTheme.colorScheme.onSurfaceVariant
         )
     }
 }

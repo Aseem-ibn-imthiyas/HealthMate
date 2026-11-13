@@ -212,15 +212,16 @@ class AuthViewModel(
                     return@launch
                 }
 
-                userSessionDao.saveSession(
-                    UserSession(
-                        userId = user.id,
-                        createdAt = currentDateTime()
-                    )
+                val newSession = UserSession(
+                    userId = user.id,
+                    createdAt = currentDateTime()
                 )
+
+                userSessionDao.saveSession(newSession)
 
                 _uiState.value = AuthUiState(
                     currentUser = user,
+                    currentSession = newSession,
                     isLoggedIn = true,
                     successMessage = "Login successful."
                 )
@@ -244,6 +245,7 @@ class AuthViewModel(
                     if (user != null) {
                         _uiState.value = AuthUiState(
                             currentUser = user,
+                            currentSession = session,
                             isLoggedIn = true,
                             isCheckingSession = false
                         )
@@ -267,6 +269,138 @@ class AuthViewModel(
         }
     }
 
+    // UPDATE PROFILE
+    fun updateProfile(
+        fullName: String,
+        email: String,
+        profileImageUri: String?
+    ) {
+        viewModelScope.launch {
+
+            val currentUser = _uiState.value.currentUser
+
+            if (currentUser == null) {
+                showError("Please sign in to update your profile.")
+                return@launch
+            }
+
+            _uiState.value = _uiState.value.copy(
+                isLoading = true,
+                errorMessage = null,
+                successMessage = null
+            )
+
+            try {
+                if (fullName.isBlank()) {
+                    showError("Please enter your full name.")
+                    return@launch
+                }
+
+                if (!android.util.Patterns.EMAIL_ADDRESS
+                        .matcher(email.trim()).matches()
+                ) {
+                    showError("Please enter a valid email address.")
+                    return@launch
+                }
+
+                val updatedUser = userRepository.updateProfile(
+                    userId = currentUser.id,
+                    fullName = fullName,
+                    email = email,
+                    profileImageUri = profileImageUri
+                )
+
+                if (updatedUser == null) {
+                    showError("This email address is already registered.")
+                    return@launch
+                }
+
+                _uiState.value = _uiState.value.copy(
+                    currentUser = updatedUser,
+                    isLoading = false,
+                    successMessage = "Profile updated successfully."
+                )
+
+            } catch (e: Exception) {
+                showError("Unable to update your profile. Please try again.")
+            }
+        }
+    }
+
+    // CHANGE PASSWORD
+    fun changePassword(
+        currentPassword: String,
+        newPassword: String
+    ) {
+        viewModelScope.launch {
+
+            val currentUser = _uiState.value.currentUser
+
+            if (currentUser == null) {
+                showError("Please sign in to change your password.")
+                return@launch
+            }
+
+            _uiState.value = _uiState.value.copy(
+                isLoading = true,
+                errorMessage = null,
+                successMessage = null
+            )
+
+            try {
+                // Verify current password
+                val isCurrentPasswordValid =
+                    PasswordHasher.verifyPassword(
+                        currentPassword,
+                        currentUser.passwordHash,
+                        currentUser.passwordSalt
+                    )
+
+                if (!isCurrentPasswordValid) {
+                    showError("Your current password is incorrect.")
+                    return@launch
+                }
+
+                if (newPassword.length < 8) {
+                    showError(
+                        "New password must contain at least 8 characters."
+                    )
+                    return@launch
+                }
+
+                // Generate new password hash and salt
+                val (newHash, newSalt) =
+                    PasswordHasher.hashPassword(newPassword)
+
+                // Update password in Room
+                val updatedUser = currentUser.copy(
+                    passwordHash = newHash,
+                    passwordSalt = newSalt
+                )
+
+                userRepository.updateUser(updatedUser)
+
+                _uiState.value = _uiState.value.copy(
+                    currentUser = updatedUser,
+                    isLoading = false,
+                    successMessage = "Password updated successfully.",
+                    errorMessage = null
+                )
+
+            } catch (e: Exception) {
+                showError(
+                    "Unable to update your password. Please try again."
+                )
+            }
+        }
+    }
+
+    fun getCurrentSessionDateTime(): String? {
+        return _uiState.value.currentUser?.let {
+            // The actual session timestamp will be loaded from Room next.
+            null
+        }
+    }
 
     // LOGOUT
     fun logoutUser() {

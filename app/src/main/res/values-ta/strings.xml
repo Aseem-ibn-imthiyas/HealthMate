@@ -1,0 +1,238 @@
+
+<resources>
+    <string name="app_name">HealthMate</string>
+    <string name="settings">அமைப்புகள்</string>
+    <string name="choose_language">உங்கள் மொழியைத் தேர்ந்தெடுக்கவும்</string>
+    <string name="language_description">HealthMate பயன்பாட்டிற்கான உங்களுக்கு விருப்பமான மொழியையும் மருத்துவச் சொற்களையும் தேர்ந்தெடுக்கவும்.</string>
+    <string name="available_languages">கிடைக்கும் மொழிகள்</string>
+    <string name="select_language_instruction">தொடர ஒரு மொழியைத் தேர்ந்தெடுக்கவும்</string>
+    <string name="language_options_count">5 விருப்பங்கள்</string>
+    <string name="save_language">மொழியைச் சேமிக்கவும்</string>
+    <string name="language_change_hint">பின்னர் அமைப்புகளில் மொழியை மாற்றலாம்.</string>
+    <string name="language_english">ஆங்கிலம்</string>
+    <string name="language_sinhala">சிங்களம்</string>
+    <string name="language_tamil">தமிழ்</string>
+    <string name="language_hindi">இந்தி</string>
+    <string name="language_arabic">அரபு</string>
+    <string name="native_english">English</string>
+    <string name="native_sinhala">සිංහල</string>
+    <string name="native_tamil">தமிழ்</string>
+    <string name="native_hindi">हिन्दी</string>
+    <string name="native_arabic">العربية</string>
+
+    <!-- Settings Main Screen -->
+    <string name="settings_manage_modify_account">கணக்கை நிர்வகித்து மாற்றியமைக்கவும்</string>
+
+    <!-- Profile Summary -->
+    <string name="healthmate_user">HealthMate பயனர்</string>
+    <string name="profile_picture">சுயவிவரப் படம்</string>
+
+    <!-- Settings Sections -->
+    <string name="settings_account">கணக்கு</string>
+    <string name="settings_preferences">விருப்பத்தேர்வுகள்</string>
+    <string name="settings_support">ஆதரவு</string>
+
+    <!-- Account -->
+    <string name="settings_manage_profile">சுயவிவரத்தை நிர்வகிக்கவும்</string>
+    <string name="settings_personal_information">தனிப்பட்ட தகவல்கள்</string>
+    <string name="settings_security_privacy">பாதுகாப்பு மற்றும் தனியுரிமை</string>
+    <string name="settings_account_security">கணக்குப் பாதுகாப்பு</string>
+
+    <!-- Preferences -->
+    <string name="settings_notifications">அறிவிப்புகள்</string>
+    <string name="settings_push_alerts">புஷ் அறிவிப்புகள் மற்றும் எச்சரிக்கைகள்</string>
+    <string name="settings_dark_mode">இருண்ட பயன்முறை</string>
+    <string name="settings_match_system_theme">கணினியின் தீம் அமைப்பைப் பின்பற்றவும்</string>
+    <string name="settings_language">மொழி</string>
+    <string name="settings_app_language">செயலியின் மொழி</string>
+
+    <!-- Support -->
+    <string name="settings_terms_policies">விதிமுறைகள் மற்றும் கொள்கைகள்</string>
+    <string name="settings_privacy_terms">தனியுரிமை மற்றும் சேவை விதிமுறைகள்</string>
+    <string name="settings_about_healthmate">HealthMate பற்றி</string>
+    <string name="settings_mission_release_notes">நோக்கம் மற்றும் வெளியீட்டுக் குறிப்புகள்</string>
+
+    <!-- Logout -->
+    <string name="settings_logout">வெளியேறு</string>
+    <string name="settings_logout_description">உங்கள் HealthMate கணக்கிலிருந்து வெளியேறவும்</string>
+    <string name="settings_logout_accessibility">வெளியேறு</string>
+    <string name="settings_logout_confirmation_title">வெளியேறவா?</string>
+    <string name="settings_logout_confirmation_message">நீங்கள் HealthMate கணக்கிலிருந்து வெளியேற விரும்புகிறீர்களா?</string>
+    <string name="settings_cancel">ரத்துசெய்</string>
+
+    <!-- App Information -->
+    <string name="settings_app_version">HealthMate • பதிப்பு 1.0.0</string>
+
+    <!-- Edit Profile Screen -->
+    <string name="edit_profile_back">மீண்டும் செல்லவும்</string>
+    <string name="edit_profile_picture">சுயவிவரப் படம்</string>
+    <string name="edit_profile_change_picture">சுயவிவரப் படத்தை மாற்றவும்</string>
+    <string name="edit_profile_your_name">உங்கள் பெயர்</string>
+
+    <!-- Personal Information -->
+    <string name="edit_profile_personal_information">தனிப்பட்ட தகவல்கள்</string>
+    <string name="edit_profile_manage_identity">HealthMate முழுவதும் உங்கள் அடையாளத்தை நிர்வகிக்கவும்</string>
+
+    <!-- Input Fields -->
+    <string name="edit_profile_full_name">முழுப் பெயர்</string>
+    <string name="edit_profile_enter_full_name">உங்கள் முழுப் பெயரை உள்ளிடவும்</string>
+    <string name="edit_profile_email_address">மின்னஞ்சல் முகவரி</string>
+    <string name="edit_profile_enter_email">உங்கள் மின்னஞ்சலை உள்ளிடவும்</string>
+    <string name="edit_profile_username">பயனர் பெயர்</string>
+    <string name="edit_profile_enter_username">பயனர் பெயரை உள்ளிடவும்</string>
+
+    <!-- Account Information -->
+    <string name="edit_profile_account_information">கணக்குத் தகவல்கள்</string>
+    <string name="edit_profile_member_since">உறுப்பினரான தேதி</string>
+    <string name="edit_profile_member_date">அக்டோபர் 2023</string>
+    <string name="edit_profile_time_ago">7 நிமிடங்களுக்கு முன்பு</string>
+    <string name="edit_profile_account_status">கணக்கு நிலை</string>
+    <string name="edit_profile_standard_protected">நிலையான பாதுகாப்பு</string>
+    <string name="edit_profile_active">செயலில் உள்ளது</string>
+
+    <!-- Validation Messages -->
+    <string name="edit_profile_image_error">தேர்ந்தெடுக்கப்பட்ட படத்தை அணுக முடியவில்லை.</string>
+    <string name="edit_profile_name_required">உங்கள் முழுப் பெயரை உள்ளிடவும்.</string>
+    <string name="edit_profile_valid_email">சரியான மின்னஞ்சல் முகவரியை உள்ளிடவும்.</string>
+    <string name="edit_profile_username_required">பயனர் பெயரை உள்ளிடவும்.</string>
+
+    <!-- Action Buttons -->
+    <string name="edit_profile_save_changes">மாற்றங்களைச் சேமிக்கவும்</string>
+
+    <!-- Security & Privacy Screen -->
+    <string name="security_back">மீண்டும் செல்லவும்</string>
+
+    <!-- Change Password -->
+    <string name="security_change_password">கடவுச்சொல்லை மாற்றவும்</string>
+    <string name="security_password_description">உங்கள் சுகாதாரப் பதிவுகளைப் பாதுகாப்பாக வைத்திருக்க கணக்கின் உள்நுழைவுத் தகவல்களைப் புதுப்பிக்கவும்.</string>
+    <string name="security_current_password">தற்போதைய கடவுச்சொல்</string>
+    <string name="security_new_password">புதிய கடவுச்சொல்</string>
+    <string name="security_confirm_new_password">புதிய கடவுச்சொல்லை உறுதிப்படுத்தவும்</string>
+    <string name="security_enter_password">%1$s உள்ளிடவும்</string>
+    <string name="security_toggle_password_visibility">கடவுச்சொல் தெரிவுநிலையை மாற்றவும்</string>
+    <string name="security_update_password">கடவுச்சொல்லைப் புதுப்பிக்கவும்</string>
+
+    <!-- Password Validation -->
+    <string name="security_current_password_required">உங்கள் தற்போதைய கடவுச்சொல்லை உள்ளிடவும்.</string>
+    <string name="security_password_minimum_length">புதிய கடவுச்சொல் குறைந்தது 8 எழுத்துகளைக் கொண்டிருக்க வேண்டும்.</string>
+    <string name="security_password_must_be_different">புதிய கடவுச்சொல் தற்போதைய கடவுச்சொல்லிலிருந்து வேறுபட்டதாக இருக்க வேண்டும்.</string>
+    <string name="security_passwords_do_not_match">புதிய கடவுச்சொற்கள் பொருந்தவில்லை.</string>
+
+    <!-- Password Confirmation -->
+    <string name="security_password_updated">கடவுச்சொல் புதுப்பிக்கப்பட்டது</string>
+    <string name="security_ok">சரி</string>
+
+    <!-- Login Devices -->
+    <string name="security_login_devices">உள்நுழைந்த சாதனங்கள்</string>
+    <string name="security_devices_description">இந்தக் கணக்கிற்கான அங்கீகரிக்கப்பட்ட உள்நுழைவு அமர்வுகளைப் பார்க்கவும்.</string>
+    <string name="security_android_device_details">Android %1$s • HealthMate • உள்நுழைந்த நேரம்: %2$s</string>
+    <string name="security_unavailable">கிடைக்கவில்லை</string>
+    <string name="security_active_now">தற்போது செயலில் உள்ளது</string>
+    <string name="security_logged_in">உள்நுழைந்த நேரம்</string>
+
+    <!-- Device Sign Out -->
+    <string name="security_sign_out">வெளியேறு</string>
+    <string name="security_sign_out_device_title">சாதனத்திலிருந்து வெளியேறவா?</string>
+    <string name="security_sign_out_device_message">%1$s சாதனத்திலிருந்து வெளியேற விரும்புகிறீர்களா?</string>
+    <string name="security_cancel">ரத்துசெய்</string>
+
+    <!-- Dashboard Header -->
+    <string name="dashboard_profile_picture">சுயவிவரப் படம்</string>
+    <string name="dashboard_good_morning">காலை வணக்கம் 👋</string>
+    <string name="dashboard_notifications">அறிவிப்புகள்</string>
+
+    <!-- Daily Goal Banner -->
+    <string name="dashboard_daily_goal">உங்கள் தினசரி இலக்கு</string>
+    <string name="dashboard_keep_moving">தொடர்ந்து இயங்குங்கள்</string>
+    <string name="dashboard_goal_description">ஒவ்வொரு அடியும் ஆரோக்கியமான வாழ்க்கைக்கு உதவுகிறது.</string>
+    <string name="dashboard_view_plan">திட்டத்தைப் பார்க்கவும்</string>
+
+    <!-- Health Summary -->
+    <string name="dashboard_health_summary">உடல்நலச் சுருக்கம்</string>
+    <string name="dashboard_details">விவரங்கள்</string>
+
+    <!-- Steps Card -->
+    <string name="dashboard_steps">நடந்த அடிகள்</string>
+    <string name="dashboard_steps_accessibility">நடந்த அடிகள்</string>
+    <string name="dashboard_steps_goal">10,000 அடிகளில்</string>
+
+    <!-- Water Card -->
+    <string name="dashboard_water">நீர்</string>
+    <string name="dashboard_water_accessibility">நீர் உட்கொள்ளல்</string>
+    <string name="dashboard_goal_percentage">%1$d%% இலக்கு</string>
+    <string name="dashboard_water_goal">2,000 மில்லியில்</string>
+
+    <!-- Calories Card -->
+    <string name="dashboard_calories">கலோரிகள்</string>
+    <string name="dashboard_calories_accessibility">கலோரிகள்</string>
+    <string name="dashboard_active">செயல்</string>
+    <string name="dashboard_daily_activity">தினசரி செயல்பாடு</string>
+
+    <!-- Heart Rate Card -->
+    <string name="dashboard_heart_rate">இதயத் துடிப்பு</string>
+    <string name="dashboard_heart_rate_accessibility">இதயத் துடிப்பு</string>
+    <string name="dashboard_syncing">ஒத்திசை</string>
+    <string name="dashboard_simulated_reading">மாதிரி அளவீடு</string>
+    <string name="dashboard_no_reading">அளவீடு எதுவும் கிடைக்கவில்லை</string>
+    <string name="dashboard_bpm">%1$d bpm</string>
+    <string name="dashboard_no_bpm_reading">-- bpm</string>
+
+    <!-- Weekly Health Log -->
+    <string name="dashboard_weekly_health_log">வாராந்திர உடல்நலப் பதிவு</string>
+    <string name="dashboard_weekly_records">இந்த வாரம் %1$d பதிவுகள்</string>
+    <string name="dashboard_weekly_log_accessibility">வாராந்திர உடல்நலப் பதிவு</string>
+    <string name="dashboard_view">பார்க்கவும்</string>
+
+
+    <!-- Health Records Screen -->
+    <string name="health_records_title">உடல்நலப் பதிவுகள்</string>
+    <string name="health_records_subtitle">தினசரி உடல்நிலை மற்றும் செயல்பாடு</string>
+    <string name="health_records_add">புதிய பதிவைச் சேர்க்கவும்</string>
+
+    <!-- Search -->
+    <string name="health_records_search_placeholder">தேதியைத் தேடுங்கள் (yyyy-MM-dd)</string>
+    <string name="health_records_search_accessibility">உடல்நலப் பதிவுகளைத் தேடுங்கள்</string>
+
+    <!-- Records Header -->
+    <string name="health_records_search_results">தேடல் முடிவுகள்</string>
+    <string name="health_records_saved_records">சேமிக்கப்பட்ட பதிவுகள்</string>
+    <string name="health_records_count">%1$d பதிவுகள்</string>
+    <string name="health_records_clear">அழிக்கவும்</string>
+
+    <!-- Record Actions -->
+    <string name="health_records_edit">பதிவைத் திருத்தவும்</string>
+    <string name="health_records_delete">பதிவை நீக்கவும்</string>
+    <string name="health_records_view_details">விவரங்களைப் பார்க்கவும்</string>
+
+    <!-- Health Metrics -->
+    <string name="health_records_steps">அடிகள்</string>
+    <string name="health_records_calories">கிலோகலோரி</string>
+    <string name="health_records_water">மி.லி.</string>
+
+    <!-- Empty State -->
+    <string name="health_records_empty_title">இன்னும் உடல்நலப் பதிவுகள் இல்லை</string>
+    <string name="health_records_empty_description">உங்கள் முதல் உடல்நலப் பதிவைச் சேர்த்து தினசரி செயல்பாடுகளைக் கண்காணிக்கத் தொடங்குங்கள்.</string>
+
+    <!-- Communities Screen -->
+    <string name="communities_title">சமூகங்கள்</string>
+    <string name="communities_subtitle">ஆரோக்கியமாக வளர்வோம்.</string>
+    <string name="communities_create">சமூகத்தை உருவாக்கவும்</string>
+
+    <!-- Categories -->
+    <string name="communities_explore_categories">வகைகள்</string>
+    <string name="communities_view_all">அனைத்தையும் பார்க்கவும்</string>
+    <string name="communities_fitness">உடற்பயிற்சி</string>
+    <string name="communities_nutrition">ஊட்டச்சத்து</string>
+    <string name="communities_mindfulness">மனநலம்</string>
+    <string name="communities_wellness">நல்வாழ்வு</string>
+    <string name="communities_lifestyle">வாழ்க்கை முறை</string>
+
+    <!-- Popular Communities -->
+    <string name="communities_popular">பிரபலமான சமூகங்கள்</string>
+    <string name="communities_view_community">சமூகத்தைப் பார்க்கவும்</string>
+
+    <!-- Empty State -->
+    <string name="communities_empty_title">சமூகங்கள் எதுவும் கிடைக்கவில்லை</string>
+    <string name="communities_empty_description">வேறொரு வகையை ஆராய்ந்து பாருங்கள்.</string>
+
+</resources>

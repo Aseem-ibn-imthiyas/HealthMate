@@ -35,6 +35,8 @@ import java.text.SimpleDateFormat
 import java.util.Calendar
 import java.util.Date
 import java.util.Locale
+import androidx.compose.ui.res.stringResource
+import com.healthmate.R
 
 
 private val BackgroundColor = Color(0xFFF7F8FF)
@@ -118,7 +120,7 @@ fun HealthRecordsScreen(
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .background(BackgroundColor)
+            .background(MaterialTheme.colorScheme.background)
             .statusBarsPadding()
     ) {
 
@@ -137,16 +139,16 @@ fun HealthRecordsScreen(
                 modifier = Modifier.weight(1f)
             ) {
                 Text(
-                    text = "Health Records",
+                    text = stringResource(R.string.health_records_title),
                     fontSize = 20.sp,
                     fontWeight = FontWeight.Bold,
-                    color = HeadingColor
+                    color = MaterialTheme.colorScheme.onBackground
                 )
 
                 Text(
-                    text = "Daily vitals & activity telemetry",
+                    text = stringResource(R.string.health_records_subtitle),
                     fontSize = 11.sp,
-                    color = SecondaryColor
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
             }
 
@@ -158,7 +160,7 @@ fun HealthRecordsScreen(
             ) {
                 Icon(
                     imageVector = Icons.Default.Add,
-                    contentDescription = "Add new record",
+                    contentDescription = stringResource(R.string.health_records_add),
                     tint = Color.White,
                     modifier = Modifier.size(25.dp)
                 )
@@ -177,8 +179,8 @@ fun HealthRecordsScreen(
                 .padding(top = 20.dp),
             placeholder = {
                 Text(
-                    text = "Search date (yyyy-MM-dd)",
-                    color = SecondaryColor
+                    text = stringResource(R.string.health_records_search_placeholder),
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
             },
             singleLine = true,
@@ -198,16 +200,19 @@ fun HealthRecordsScreen(
                 ) {
                     Icon(
                         imageVector = Icons.Default.Search,
-                        contentDescription = "Search health records",
-                        tint = SecondaryColor
+                        contentDescription = stringResource(R.string.health_records_search_accessibility),
+                        tint = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                 }
             },
             colors = OutlinedTextFieldDefaults.colors(
-                unfocusedContainerColor = Color.White,
-                focusedContainerColor = Color.White,
-                unfocusedBorderColor = Color.Transparent,
-                focusedBorderColor = Color.Transparent
+                unfocusedContainerColor = MaterialTheme.colorScheme.surface,
+                focusedContainerColor = MaterialTheme.colorScheme.surface,
+                unfocusedBorderColor = MaterialTheme.colorScheme.outlineVariant,
+                focusedBorderColor = MaterialTheme.colorScheme.primary,
+                unfocusedTextColor = MaterialTheme.colorScheme.onSurface,
+                focusedTextColor = MaterialTheme.colorScheme.onSurface,
+                cursorColor = MaterialTheme.colorScheme.primary
             )
         )
 
@@ -261,10 +266,14 @@ fun HealthRecordsScreen(
             verticalAlignment = Alignment.CenterVertically
         ) {
             Text(
-                text = if (isSearchActive) "Search Results" else "Saved Records",
+                text = if (isSearchActive) {
+                    stringResource(R.string.health_records_search_results)
+                } else {
+                    stringResource(R.string.health_records_saved_records)
+                },
                 fontSize = 17.sp,
                 fontWeight = FontWeight.Bold,
-                color = HeadingColor
+                color = MaterialTheme.colorScheme.onBackground
             )
 
             Spacer(modifier = Modifier.width(9.dp))
@@ -272,17 +281,20 @@ fun HealthRecordsScreen(
             Box(
                 modifier = Modifier
                     .clip(CircleShape)
-                    .background(Color(0xFFDCE9FA))
+                    .background(MaterialTheme.colorScheme.surface)
                     .padding(
                         horizontal = 11.dp,
                         vertical = 4.dp
                     )
             ) {
                 Text(
-                    text = "${selectedRecords.size} records",
+                    text = stringResource(
+                        R.string.health_records_count,
+                        selectedRecords.size
+                    ),
                     fontSize = 10.sp,
                     fontWeight = FontWeight.SemiBold,
-                    color = Color(0xFF29466D)
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
             }
 
@@ -293,8 +305,8 @@ fun HealthRecordsScreen(
                     onClick = onClearSearch
                 ) {
                     Text(
-                        text = "Clear",
-                        color = PrimaryBlue,
+                        text = stringResource(R.string.health_records_clear),
+                        color = MaterialTheme.colorScheme.primary,
                         fontSize = 12.sp,
                         fontWeight = FontWeight.SemiBold
                     )
@@ -352,15 +364,15 @@ private fun DateSelectorItem(
     onClick: () -> Unit
 ) {
     val itemBackground = if (selected) {
-        PrimaryBlue
+        MaterialTheme.colorScheme.primary
     } else {
-        Color.White
+        MaterialTheme.colorScheme.surface
     }
 
     val mainTextColor = if (selected) {
-        Color.White
+        MaterialTheme.colorScheme.onPrimary
     } else {
-        Color(0xFF52627A)
+        MaterialTheme.colorScheme.onSurface
     }
 
     Column(
@@ -392,9 +404,9 @@ private fun DateSelectorItem(
                 .size(6.dp)
                 .background(
                     color = when {
-                        selected -> Color.White
-                        day.hasRecord -> Color(0xFF0052CC)
-                        else -> Color(0xFFD5E3F8)
+                        selected -> MaterialTheme.colorScheme.onPrimary
+                        day.hasRecord -> MaterialTheme.colorScheme.primary
+                        else -> MaterialTheme.colorScheme.outlineVariant
                     },
                     shape = CircleShape
                 )
@@ -413,7 +425,7 @@ private fun HealthRecordCard(
         modifier = Modifier
             .fillMaxWidth()
             .clip(RoundedCornerShape(29.dp))
-            .background(Color.White)
+            .background(MaterialTheme.colorScheme.surface)
             .clickable(onClick = onClick)
             .padding(16.dp)
     ) {
@@ -427,7 +439,7 @@ private fun HealthRecordCard(
                 text = record.date,
                 fontSize = 17.sp,
                 fontWeight = FontWeight.Bold,
-                color = HeadingColor
+                color = MaterialTheme.colorScheme.onBackground
             )
 
             Spacer(modifier = Modifier.width(8.dp))
@@ -435,7 +447,7 @@ private fun HealthRecordCard(
             Box(
                 modifier = Modifier
                     .clip(CircleShape)
-                    .background(Color(0xFFE0E8FF))
+                    .background(MaterialTheme.colorScheme.surfaceVariant)
                     .padding(
                         horizontal = 10.dp,
                         vertical = 4.dp
@@ -445,7 +457,7 @@ private fun HealthRecordCard(
                     text = record.dateLabel,
                     fontSize = 10.sp,
                     fontWeight = FontWeight.Medium,
-                    color = Color(0xFF234B9A)
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
             }
 
@@ -457,8 +469,8 @@ private fun HealthRecordCard(
             ) {
                 Icon(
                     imageVector = Icons.Default.Edit,
-                    contentDescription = "Edit record",
-                    tint = SecondaryColor,
+                    contentDescription = stringResource(R.string.health_records_edit),
+                    tint = MaterialTheme.colorScheme.onSurfaceVariant,
                     modifier = Modifier.size(18.dp)
                 )
             }
@@ -469,8 +481,8 @@ private fun HealthRecordCard(
             ) {
                 Icon(
                     imageVector = Icons.Default.Delete,
-                    contentDescription = "Delete record",
-                    tint = SecondaryColor,
+                    contentDescription = stringResource(R.string.health_records_delete),
+                    tint = MaterialTheme.colorScheme.onSurfaceVariant,
                     modifier = Modifier.size(18.dp)
                 )
             }
@@ -485,7 +497,7 @@ private fun HealthRecordCard(
         ) {
             HealthMetricTile(
                 modifier = Modifier.weight(1f),
-                title = "Steps",
+                title = stringResource(R.string.health_records_steps),
                 value = "%,d".format(record.steps),
                 icon = {
                     Icon(
@@ -494,14 +506,14 @@ private fun HealthRecordCard(
                         tint = Color(0xFF0755E9)
                     )
                 },
-                background = Color(0xFFEDF3FF),
-                iconBackground = Color(0xFFDCE6FF),
-                valueColor = Color(0xFF0755E9)
+                background = MaterialTheme.colorScheme.surfaceVariant,
+                iconBackground = MaterialTheme.colorScheme.surface,
+                valueColor = MaterialTheme.colorScheme.onSurface
             )
 
             HealthMetricTile(
                 modifier = Modifier.weight(1f),
-                title = "kcal",
+                title = stringResource(R.string.health_records_calories),
                 value = record.calories.toString(),
                 icon = {
                     Icon(
@@ -510,14 +522,14 @@ private fun HealthRecordCard(
                         tint = Color(0xFFE53935)
                     )
                 },
-                background = Color(0xFFFFEEEE),
-                iconBackground = Color(0xFFFFDCDC),
-                valueColor = Color(0xFFB71C1C)
+                background = MaterialTheme.colorScheme.surfaceVariant,
+                iconBackground = MaterialTheme.colorScheme.surface,
+                valueColor = MaterialTheme.colorScheme.onSurface
             )
 
             HealthMetricTile(
                 modifier = Modifier.weight(1f),
-                title = "ml",
+                title = stringResource(R.string.health_records_water),
                 value = "%,d".format(record.water),
                 icon = {
                     Icon(
@@ -526,9 +538,9 @@ private fun HealthRecordCard(
                         tint = Color(0xFF365F9D)
                     )
                 },
-                background = Color(0xFFEAF2FC),
-                iconBackground = Color(0xFFD7E5F9),
-                valueColor = Color(0xFF365F9D)
+                background = MaterialTheme.colorScheme.surfaceVariant,
+                iconBackground = MaterialTheme.colorScheme.surface,
+                valueColor = MaterialTheme.colorScheme.onSurface
             )
         }
 
@@ -542,7 +554,7 @@ private fun HealthRecordCard(
             Icon(
                 imageVector = Icons.Default.AccessTime,
                 contentDescription = null,
-                tint = SecondaryColor,
+                tint = MaterialTheme.colorScheme.onSurfaceVariant,
                 modifier = Modifier.size(14.dp)
             )
 
@@ -551,7 +563,7 @@ private fun HealthRecordCard(
             Text(
                 text = record.updatedAt,
                 fontSize = 10.sp,
-                color = SecondaryColor,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
                 modifier = Modifier.weight(1f)
             )
 
@@ -564,10 +576,10 @@ private fun HealthRecordCard(
                 )
             ) {
                 Text(
-                    text = "View Details",
+                    text = stringResource(R.string.health_records_view_details),
                     fontSize = 11.sp,
                     fontWeight = FontWeight.SemiBold,
-                    color = PrimaryBlue
+                    color = MaterialTheme.colorScheme.primary
                 )
             }
         }
@@ -622,7 +634,7 @@ private fun HealthMetricTile(
             Text(
                 text = title,
                 fontSize = 10.sp,
-                color = SecondaryColor
+                color = MaterialTheme.colorScheme.onSurfaceVariant
             )
         }
     }
@@ -649,18 +661,18 @@ private fun EmptyRecordsState(
         Spacer(modifier = Modifier.height(15.dp))
 
         Text(
-            text = "No Health Records Yet",
+            text = stringResource(R.string.health_records_empty_title),
             fontSize = 18.sp,
             fontWeight = FontWeight.Bold,
-            color = HeadingColor
+            color = MaterialTheme.colorScheme.onBackground
         )
 
         Spacer(modifier = Modifier.height(7.dp))
 
         Text(
-            text = "Start tracking your daily activities by adding your first health record.",
+            text = stringResource(R.string.health_records_empty_description),
             fontSize = 13.sp,
-            color = SecondaryColor,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
             lineHeight = 20.sp
         )
     }

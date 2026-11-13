@@ -1,6 +1,9 @@
 
 package com.healthmate
 
+import com.healthmate.data.repository.CommunityRepository
+import com.healthmate.viewmodel.CommunityViewModel
+import com.healthmate.viewmodel.CommunityViewModelFactory
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.Alignment
 import androidx.compose.material3.CircularProgressIndicator
@@ -54,6 +57,26 @@ import com.healthmate.data.local.entity.HealthRecord
 import com.healthmate.ui.forgotpassword.ForgotPasswordScreen
 import com.healthmate.ui.forgotpassword.ResetPasswordScreen
 import java.util.Calendar
+import com.healthmate.data.repository.UserSettingsRepository
+import com.healthmate.viewmodel.SettingsViewModel
+import com.healthmate.viewmodel.SettingsViewModelFactory
+import androidx.compose.runtime.LaunchedEffect
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.healthmate.ui.theme.HealthMateTheme
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.setValue
+import androidx.compose.runtime.SideEffect
+import androidx.compose.ui.graphics.toArgb
+import androidx.core.view.WindowCompat
+import android.os.Build
+import android.app.LocaleManager
+import android.os.LocaleList
+import com.healthmate.data.repository.NotificationRepository
+import com.healthmate.viewmodel.NotificationViewModel
+import com.healthmate.ui.notifications.NotificationViewModelFactory
+import com.healthmate.ui.notifications.model.NotificationUiModel
+import com.healthmate.ui.notifications.model.NotificationType
+import com.healthmate.notifications.HealthMateNotificationManager
 
 class MainActivity : ComponentActivity() {
 
@@ -61,26 +84,74 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
 
         setContent {
-            MaterialTheme {
 
-                // Initialize Room Database
-                val database = remember {
-                    HealthMateDatabase.getDatabase(applicationContext)
+            LaunchedEffect(Unit) {
+                HealthMateNotificationManager.createNotificationChannel(
+                    applicationContext
+                )
+            }
+
+            var isDarkModeEnabled by remember {
+                mutableStateOf(false)
+            }
+
+            HealthMateTheme(
+                darkTheme = isDarkModeEnabled,
+                dynamicColor = false
+            ) {
+
+
+                val systemNavigationBarColor =
+                    MaterialTheme.colorScheme.background.toArgb()
+
+                SideEffect {
+
+                    // Set the Android window background
+                    window.decorView.setBackgroundColor(systemNavigationBarColor)
+
+                    // Set navigation bar colour
+                    window.navigationBarColor = systemNavigationBarColor
+
+                    // Set gesture bar icon appearance
+                    WindowCompat.getInsetsController(
+                        window,
+                        window.decorView
+                    ).isAppearanceLightNavigationBars = !isDarkModeEnabled
+
+                    // Disable navigation bar contrast enforcement (Android 10+)
+                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+                        window.isNavigationBarContrastEnforced = false
+                    }
                 }
 
+
+                // Initialize Room Database
+                val database = remember {HealthMateDatabase.getDatabase(applicationContext)}
+
                 // Initialize Repository
-                val repository = remember {
-                    HealthRecordRepository(database.healthRecordDao())
+                val repository = remember {HealthRecordRepository(database.healthRecordDao())}
+
+                // Initialize Notification Repository
+                val notificationRepository = remember {
+                    NotificationRepository(database.notificationDao())
                 }
 
                 // Initialize ViewModel
-                val healthRecordViewModel: HealthRecordViewModel = viewModel(
-                    factory = HealthRecordViewModelFactory(repository)
-                )
+                //val healthRecordViewModel: HealthRecordViewModel = viewModel(factory = HealthRecordViewModelFactory(repository))
 
                 // Initialize User Repository
-                val userRepository = remember {
-                    UserRepository(database.userDao())
+                val userRepository = remember {UserRepository(database.userDao())}
+
+                // Initialize Community Repository
+                val communityRepository = remember {
+                    CommunityRepository(
+                        userDao = database.userDao(),
+                        communityDao = database.communityDao(),
+                        communityMemberDao = database.communityMemberDao(),
+                        communityPostDao = database.communityPostDao(),
+                        communityLikeDao = database.communityLikeDao(),
+                        communityCommentDao = database.communityCommentDao()
+                    )
                 }
 
                 // Initialize Auth ViewModel
@@ -91,14 +162,131 @@ class MainActivity : ComponentActivity() {
                     )
                 )
 
+                // Initialize User Settings Repository
+                val userSettingsRepository = remember {
+                    UserSettingsRepository(
+                        database.userSettingsDao()
+                    )
+                }
+
+                // Initialize Settings ViewModel
+                val settingsViewModel: SettingsViewModel = viewModel(
+                    factory = SettingsViewModelFactory(
+                        userSettingsRepository = userSettingsRepository
+                    )
+                )
+
                 // Observe Authentication State
                 val authUiState by authViewModel.uiState
                     .collectAsStateWithLifecycle()
 
-                // Authentication navigation state
-                var authScreen by remember {
-                    mutableStateOf("loading")
+                val settingsUiState by settingsViewModel.uiState.
+                    collectAsStateWithLifecycle()
+
+                LaunchedEffect(authUiState.currentUser?.id) {
+                    authUiState.currentUser?.id?.let { userId ->
+                        settingsViewModel.loadSettings(userId)
+                    }
                 }
+
+
+                // Apply saved Dark Mode preference
+                LaunchedEffect(
+                    authUiState.currentUser?.id,
+                    settingsUiState.isLoading,
+                    settingsUiState.darkModeEnabled
+                ) {
+                    if (
+                        authUiState.currentUser != null &&
+                        !settingsUiState.isLoading
+                    ) {
+                        isDarkModeEnabled = settingsUiState.darkModeEnabled
+                    }
+                }
+
+                // Get currently logged-in user ID
+                val currentUserId = authUiState.currentUser?.id ?: -1
+
+                // Initialize user-specific Notification ViewModel
+                val notificationViewModel: NotificationViewModel = viewModel(
+                    key = "notifications_$currentUserId",
+                    factory = NotificationViewModelFactory(
+                        repository = notificationRepository,
+                        userId = currentUserId,
+                        context = applicationContext
+                    )
+                )
+
+                // Observe Notification List
+                val notifications by notificationViewModel.notifications
+                    .collectAsStateWithLifecycle()
+
+                // Observe Unread Notification Count
+                val unreadNotificationCount by notificationViewModel.unreadCount
+                    .collectAsStateWithLifecycle()
+
+                // Convert Room Notification Entities into UI Models
+                val notificationUiModels = remember(notifications) {
+                    notifications.map { notification ->
+
+                        val elapsedTime = System.currentTimeMillis() - notification.createdAt
+
+                        val timeText = when {
+                            elapsedTime < 60_000 -> "Just now"
+                            elapsedTime < 3_600_000 ->
+                                "${elapsedTime / 60_000} min ago"
+                            elapsedTime < 86_400_000 ->
+                                "${elapsedTime / 3_600_000} hours ago"
+                            elapsedTime < 172_800_000 -> "Yesterday"
+                            else -> SimpleDateFormat(
+                                "MMM dd",
+                                Locale.getDefault()
+                            ).format(Date(notification.createdAt))
+                        }
+
+                        NotificationUiModel(
+                            id = notification.id,
+                            title = notification.title,
+                            message = notification.message,
+                            time = timeText,
+                            type = runCatching {
+                                NotificationType.valueOf(notification.type)
+                            }.getOrDefault(NotificationType.RECORD),
+                            isRead = notification.isRead
+                        )
+                    }
+                }
+
+                // Initialize user-specific Health Record ViewModel
+                val healthRecordViewModel: HealthRecordViewModel = viewModel(
+                    key = "health_records_$currentUserId",
+                    factory = HealthRecordViewModelFactory(
+                        repository = repository,
+                        userId = currentUserId,
+                        notificationRepository = notificationRepository,
+                        context = applicationContext
+                    )
+                )
+
+                // Observe Health Record UI State
+                val healthRecordUiState by healthRecordViewModel.uiState
+                    .collectAsStateWithLifecycle()
+
+                // Initialize Community ViewModel
+                val communityViewModel: CommunityViewModel = viewModel(
+                    key = "community_$currentUserId",
+                    factory = CommunityViewModelFactory(
+                        repository = communityRepository,
+                        currentUserId = currentUserId
+                    )
+                )
+
+                // Observe Community UI State
+                val communityUiState by communityViewModel.uiState
+                    .collectAsStateWithLifecycle()
+
+                // Authentication navigation state
+                var authScreen by remember {mutableStateOf("loading")}
 
                 var resetEmail by remember { mutableStateOf("") }
 
@@ -139,10 +327,6 @@ class MainActivity : ComponentActivity() {
                         authScreen = "signin"
                     }
                 }
-
-                // Observe ViewModel State
-                val healthRecordUiState by healthRecordViewModel.uiState
-                    .collectAsStateWithLifecycle()
 
                 // Reusable Room record to UI model conversion
                 val convertToUiModel: (HealthRecord) -> HealthRecordUiModel = { record ->
@@ -259,6 +443,13 @@ class MainActivity : ComponentActivity() {
                     mutableStateOf(false)
                 }
 
+                LaunchedEffect(authUiState.successMessage) {
+                    if (authUiState.successMessage == "Profile updated successfully.") {
+                        showEditProfile = false
+                        authViewModel.clearMessages()
+                    }
+                }
+
                 var showSecurityPrivacy by remember {
                     mutableStateOf(false)
                 }
@@ -268,7 +459,15 @@ class MainActivity : ComponentActivity() {
                 }
 
                 var selectedAppLanguage by remember {
-                    mutableStateOf("en")
+                    mutableStateOf(
+                        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                            getSystemService(LocaleManager::class.java)
+                                .applicationLocales
+                                .get(0)?.language ?: "en"
+                        } else {
+                            "en"
+                        }
+                    )
                 }
 
                 var showTermsPolicies by remember {
@@ -392,10 +591,33 @@ class MainActivity : ComponentActivity() {
 
                             HealthMateDestination.DASHBOARD -> {
                                 DashboardScreen(
+                                    userFullName = authUiState.currentUser?.fullName ?: "",
+                                    userProfileImageUri = authUiState.currentUser?.profileImageUri,
                                     todaySteps = healthRecordUiState.todayRecord?.steps ?: 0,
                                     todayCalories = healthRecordUiState.todayRecord?.calories ?: 0,
                                     todayWater = healthRecordUiState.todayRecord?.water ?: 0,
-                                    weeklyRecordCount = weeklyRecordCount
+                                    weeklyRecordCount = weeklyRecordCount,
+
+                                    // Notification data from Room
+                                    notifications = notificationUiModels,
+                                    unreadNotificationCount = unreadNotificationCount,
+
+                                    // Notification actions
+                                    onMarkNotificationAsRead = { notificationId ->
+                                        notificationViewModel.markAsRead(notificationId)
+                                    },
+
+                                    onMarkAllNotificationsAsRead = {
+                                        notificationViewModel.markAllAsRead()
+                                    },
+
+                                    onDeleteNotification = { notificationId ->
+                                        notificationViewModel.deleteNotification(notificationId)
+                                    },
+
+                                    onDetailsClick = {
+                                        selectedDestination = HealthMateDestination.HEALTH_RECORDS
+                                    }
                                 )
                             }
 
@@ -407,14 +629,19 @@ class MainActivity : ComponentActivity() {
 
                                     // View Selected Community
                                     ViewCommunityScreen(
+                                        userName = authUiState.currentUser?.fullName ?: "User",
+                                        currentUserId = authUiState.currentUser?.id ?: 0,
+                                        userProfileImageUri = authUiState.currentUser?.profileImageUri,
                                         community = community,
                                         onBackClick = {
                                             selectedCommunity = null
                                         },
-                                        onSharePost = { content ->
-
-                                            // Post INSERT operation later
-
+                                        onSharePost = { content, imageUri ->
+                                            communityViewModel.createPost(
+                                                communityId = community.id,
+                                                content = content,
+                                                imageUri = imageUri
+                                            )
                                         },
                                         onCommentClick = { post ->
 
@@ -425,6 +652,38 @@ class MainActivity : ComponentActivity() {
 
                                             // Share functionality later
 
+                                        },
+
+                                        isJoined = communityUiState.joinedCommunityIds.contains(community.id),
+
+                                        memberCount = communityUiState.memberCount,
+
+                                        onJoinCommunityClick = {
+                                            communityViewModel.joinCommunity(community.id)
+                                        },
+
+                                        onLeaveCommunityClick = {
+                                            communityViewModel.leaveCommunity(community.id)
+                                        },
+                                        onLikePostClick = { postId ->
+                                            communityViewModel.toggleLike(postId)
+                                        },
+                                        communityPosts = communityUiState.postUiModels.filter { uiPost ->
+                                            communityUiState.posts.any { roomPost ->
+                                                roomPost.id == uiPost.id &&
+                                                        roomPost.communityId == community.id
+                                            }
+                                        },
+                                        onEditPost = { postId, content, imageUri ->
+                                            communityViewModel.editPost(
+                                                postId = postId,
+                                                content = content,
+                                                imageUri = imageUri
+                                            )
+                                        },
+
+                                        onDeletePost = { postId ->
+                                            communityViewModel.deletePost(postId)
                                         }
                                     )
 
@@ -440,7 +699,14 @@ class MainActivity : ComponentActivity() {
                                         },
                                         onCreateCommunity = { community ->
 
-                                            // Community database INSERT later
+                                            communityViewModel.createCommunity(
+                                                name = community.name,
+                                                description = community.description,
+                                                category = community.category,
+                                                coverImageUri = community.coverImageUri?.toString(),
+                                                privacy = community.privacy,
+                                                guidelines = community.guidelines
+                                            )
 
                                             showCreateCommunity = false
                                         }
@@ -448,18 +714,49 @@ class MainActivity : ComponentActivity() {
 
                                 } else {
 
+                                    // Convert Room entities into UI models
+                                    val communityDisplayList = communityUiState.communities.map { item ->
+
+                                        val imageRes = when (item.category) {
+                                            "Fitness" -> R.drawable.community_fitness
+                                            "Nutrition" -> R.drawable.community_nutrition
+                                            "Mindfulness" -> R.drawable.community_mindfulness
+                                            else -> R.drawable.community_fitness
+                                        }
+
+                                        CommunityUiModel(
+                                            id = item.id,
+                                            name = item.name,
+                                            category = item.category,
+                                            description = item.description,
+                                            imageRes = imageRes,
+                                            badge = item.category,
+                                            badgeIcon = "●",
+                                            imageCaption = "Connect and grow together",
+                                            memberCount = "Community",
+                                            status = "Active",
+                                            isTrending = false
+                                        )
+                                    }
+
                                     // Communities Main Screen
                                     CommunitiesScreen(
+                                        communities = communityDisplayList,
                                         onCreateCommunityClick = {
                                             showCreateCommunity = true
                                         },
                                         onViewAllCategoriesClick = {
-
                                             // View all categories later
-
                                         },
                                         onCommunityClick = { community ->
+
                                             selectedCommunity = community
+
+                                            communityUiState.communities
+                                                .find { it.id == community.id }
+                                                ?.let { roomCommunity ->
+                                                    communityViewModel.selectCommunity(roomCommunity)
+                                                }
                                         }
                                     )
                                 }
@@ -538,6 +835,17 @@ class MainActivity : ComponentActivity() {
                                                 showLanguageScreen = false
                                             },
                                             onSaveLanguage = { languageCode ->
+
+                                                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+
+                                                    val localeManager =
+                                                        getSystemService(LocaleManager::class.java)
+
+                                                    localeManager.applicationLocales =
+                                                        LocaleList.forLanguageTags(languageCode)
+
+                                                }
+
                                                 selectedAppLanguage = languageCode
                                                 showLanguageScreen = false
                                             }
@@ -551,21 +859,35 @@ class MainActivity : ComponentActivity() {
                                                 showSecurityPrivacy = false
                                             },
                                             onUpdatePassword = { currentPassword, newPassword ->
-
-                                                // Password update logic later.
-
+                                                authViewModel.changePassword(
+                                                    currentPassword = currentPassword,
+                                                    newPassword = newPassword
+                                                )
                                             },
                                             onSignOutDevice = { device ->
 
                                                 // Device session management later.
 
-                                            }
+                                            },
+                                            isPasswordLoading = authUiState.isLoading,
+
+                                            passwordErrorMessage = authUiState.errorMessage,
+
+                                            passwordSuccessMessage = authUiState.successMessage,
+
+                                            onClearPasswordMessages = {
+                                                authViewModel.clearMessages()
+                                            },
+                                            sessionCreatedAt = authUiState.currentSession?.createdAt,
                                         )
                                     }
 
                                     // Edit Profile Screen
                                     showEditProfile -> {
                                         EditProfileScreen(
+                                            initialFullName = authUiState.currentUser?.fullName ?: "",
+                                            initialEmail = authUiState.currentUser?.email ?: "",
+                                            initialProfileImageUri = authUiState.currentUser?.profileImageUri,
                                             onBackClick = {
                                                 showEditProfile = false
                                             },
@@ -573,10 +895,11 @@ class MainActivity : ComponentActivity() {
                                                 showEditProfile = false
                                             },
                                             onSaveChanges = { updatedProfile ->
-
-                                                // Room database UPDATE later.
-
-                                                showEditProfile = false
+                                                authViewModel.updateProfile(
+                                                    fullName = updatedProfile.fullName,
+                                                    email = updatedProfile.email,
+                                                    profileImageUri = updatedProfile.profileImageUri?.toString()
+                                                )
                                             }
                                         )
                                     }
@@ -584,6 +907,9 @@ class MainActivity : ComponentActivity() {
                                     // Settings Main Screen
                                     else -> {
                                         SettingsScreen(
+                                            userFullName = authUiState.currentUser?.fullName ?: "",
+                                            userEmail = authUiState.currentUser?.email ?: "",
+                                            userProfileImageUri = authUiState.currentUser?.profileImageUri,
                                             onManageProfileClick = {
                                                 showEditProfile = true
                                             },
@@ -607,7 +933,31 @@ class MainActivity : ComponentActivity() {
                                             },
                                             onLogoutClick = {
                                                 authViewModel.logoutUser()
-                                            }
+                                            },
+                                            darkModeEnabled = isDarkModeEnabled,
+                                            onDarkModeChanged = { enabled ->
+
+                                                // Update app theme immediately
+                                                isDarkModeEnabled = enabled
+
+                                                // Save preference in Room Database
+                                                authUiState.currentUser?.id?.let { userId ->
+                                                    settingsViewModel.updateDarkMode(
+                                                        userId = userId,
+                                                        enabled = enabled
+                                                    )
+                                                }
+                                            },
+                                            initialNotificationsEnabled = settingsUiState.notificationsEnabled,
+
+                                            onNotificationsChanged = { enabled ->
+                                                authUiState.currentUser?.id?.let { userId ->
+                                                    settingsViewModel.updateNotifications(
+                                                        userId = userId,
+                                                        enabled = enabled
+                                                    )
+                                                }
+                                            },
                                         )
                                     }
                                 }
@@ -643,7 +993,8 @@ class MainActivity : ComponentActivity() {
                                         date = record.dateIso,
                                         steps = steps,
                                         calories = calories,
-                                        water = water
+                                        water = water,
+                                        userId = currentUserId
                                     )
 
                                     healthRecordViewModel.updateRecord(updatedRecord)
@@ -675,7 +1026,8 @@ class MainActivity : ComponentActivity() {
                                         date = record.dateIso,
                                         steps = record.steps,
                                         calories = record.calories,
-                                        water = record.water
+                                        water = record.water,
+                                        userId = currentUserId
                                     )
 
                                     healthRecordViewModel.deleteRecord(recordToDelete)

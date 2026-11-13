@@ -45,7 +45,7 @@ fun TermsPoliciesScreen(
     Column(
         modifier = modifier
             .fillMaxSize()
-            .background(TermsBackground)
+            .background(MaterialTheme.colorScheme.background)
             .statusBarsPadding()
     ) {
 
@@ -64,7 +64,7 @@ fun TermsPoliciesScreen(
                 Icon(
                     imageVector = Icons.Default.ArrowBack,
                     contentDescription = "Back to Settings",
-                    tint = TermsDark,
+                    tint = MaterialTheme.colorScheme.onSurface,
                     modifier = Modifier.size(22.dp)
                 )
             }
@@ -75,7 +75,7 @@ fun TermsPoliciesScreen(
                 text = "Settings",
                 fontSize = 17.sp,
                 fontWeight = FontWeight.Medium,
-                color = TermsDark
+                color = MaterialTheme.colorScheme.onSurface
             )
         }
 
@@ -94,7 +94,7 @@ fun TermsPoliciesScreen(
                 modifier = Modifier
                     .fillMaxWidth()
                     .clip(RoundedCornerShape(20.dp))
-                    .background(TermsCard)
+                    .background(MaterialTheme.colorScheme.surfaceVariant)
                     .padding(16.dp),
                 verticalAlignment = Alignment.Top
             ) {
@@ -103,7 +103,7 @@ fun TermsPoliciesScreen(
                     modifier = Modifier
                         .size(43.dp)
                         .background(
-                            Color(0xFFD8E7FF),
+                            MaterialTheme.colorScheme.surface,
                             CircleShape
                         ),
                     contentAlignment = Alignment.Center
@@ -111,7 +111,7 @@ fun TermsPoliciesScreen(
                     Icon(
                         imageVector = Icons.Default.Info,
                         contentDescription = null,
-                        tint = TermsBlue,
+                        tint = MaterialTheme.colorScheme.primary,
                         modifier = Modifier.size(22.dp)
                     )
                 }
@@ -123,7 +123,7 @@ fun TermsPoliciesScreen(
                         text = "Terms of Services",
                         fontSize = 16.sp,
                         fontWeight = FontWeight.SemiBold,
-                        color = TermsDark
+                        color = MaterialTheme.colorScheme.onSurface
                     )
 
                     Spacer(Modifier.height(4.dp))
@@ -132,7 +132,7 @@ fun TermsPoliciesScreen(
                         text = "These terms outline your legal rights, responsibilities, key health disclaimers using HealthMate.",
                         fontSize = 12.sp,
                         lineHeight = 18.sp,
-                        color = TermsSecondary
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                 }
             }
@@ -211,7 +211,7 @@ fun TermsPoliciesScreen(
                     text = "SECTION 08",
                     fontSize = 10.sp,
                     fontWeight = FontWeight.Bold,
-                    color = TermsBlue,
+                    color = MaterialTheme.colorScheme.primary,
                     letterSpacing = 0.5.sp
                 )
 
@@ -221,7 +221,7 @@ fun TermsPoliciesScreen(
                     text = "Contact Information & Support",
                     fontSize = 15.sp,
                     fontWeight = FontWeight.Bold,
-                    color = TermsHeading
+                    color = MaterialTheme.colorScheme.onSurface
                 )
 
                 Spacer(Modifier.height(8.dp))
@@ -234,7 +234,7 @@ fun TermsPoliciesScreen(
 
                         withStyle(
                             SpanStyle(
-                                color = TermsBlue,
+                                color = MaterialTheme.colorScheme.primary,
                                 textDecoration = TextDecoration.Underline,
                                 fontWeight = FontWeight.Medium
                             )
@@ -260,7 +260,7 @@ fun TermsPoliciesScreen(
                     },
                     fontSize = 12.sp,
                     lineHeight = 19.sp,
-                    color = TermsSecondary
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
             }
 
@@ -269,7 +269,7 @@ fun TermsPoliciesScreen(
                 modifier = Modifier
                     .fillMaxWidth()
                     .clip(RoundedCornerShape(22.dp))
-                    .background(TermsCard)
+                    .background(MaterialTheme.colorScheme.surfaceVariant)
                     .padding(
                         horizontal = 16.dp,
                         vertical = 27.dp
@@ -281,7 +281,7 @@ fun TermsPoliciesScreen(
                     text = "End of Terms of Service",
                     fontSize = 15.sp,
                     fontWeight = FontWeight.Bold,
-                    color = TermsHeading
+                    color = MaterialTheme.colorScheme.onSurface
                 )
 
                 Spacer(Modifier.height(8.dp))
@@ -289,7 +289,7 @@ fun TermsPoliciesScreen(
                 Text(
                     text = "Last Updated: November 2026",
                     fontSize = 11.sp,
-                    color = TermsSecondary
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
             }
 
@@ -314,7 +314,7 @@ private fun TermsSection(
             text = "SECTION $number",
             fontSize = 10.sp,
             fontWeight = FontWeight.Bold,
-            color = TermsBlue,
+            color = MaterialTheme.colorScheme.primary,
             letterSpacing = 0.5.sp
         )
 
@@ -324,7 +324,7 @@ private fun TermsSection(
             text = title,
             fontSize = 15.sp,
             fontWeight = FontWeight.Bold,
-            color = TermsHeading
+            color = MaterialTheme.colorScheme.onSurface
         )
 
         Spacer(Modifier.height(8.dp))
@@ -333,7 +333,7 @@ private fun TermsSection(
             text = content,
             fontSize = 12.sp,
             lineHeight = 19.sp,
-            color = TermsSecondary
+            color = MaterialTheme.colorScheme.onSurfaceVariant
         )
     }
 }

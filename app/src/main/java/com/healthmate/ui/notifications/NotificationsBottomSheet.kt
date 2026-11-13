@@ -33,56 +33,12 @@ private val NotificationIconBlue = Color(0xFFDCE8FF)
 @Composable
 fun NotificationsBottomSheet(
     onDismiss: () -> Unit,
+    notifications: List<NotificationUiModel> = emptyList(),
+    onMarkAsRead: (Int) -> Unit = {},
+    onMarkAllAsRead: () -> Unit = {},
+    onDeleteNotification: (Int) -> Unit = {},
     onNotificationClick: (NotificationUiModel) -> Unit = {}
 ) {
-
-    var notifications by remember {
-        mutableStateOf(
-            listOf(
-                NotificationUiModel(
-                    id = 1,
-                    title = "Daily Goal Reminder",
-                    message = "You're getting closer to your daily step goal. Keep moving!",
-                    time = "10 min ago",
-                    type = NotificationType.GOAL,
-                    isRead = false
-                ),
-                NotificationUiModel(
-                    id = 2,
-                    title = "Stay Hydrated",
-                    message = "Time to drink some water! Keep your hydration goal on track.",
-                    time = "1 hour ago",
-                    type = NotificationType.WATER,
-                    isRead = false
-                ),
-                NotificationUiModel(
-                    id = 3,
-                    title = "Community Update",
-                    message = "New activities and discussions are waiting in your walking squad.",
-                    time = "3 hours ago",
-                    type = NotificationType.COMMUNITY,
-                    isRead = true
-                ),
-                NotificationUiModel(
-                    id = 4,
-                    title = "Record Saved Successfully",
-                    message = "Your daily biometric and blood pressure logs have been synchronized.",
-                    time = "Yesterday",
-                    type = NotificationType.RECORD,
-                    isRead = true
-                ),
-                NotificationUiModel(
-                    id = 5,
-                    title = "Weekly Health Summary",
-                    message = "Your weekly health progress summary is ready to review.",
-                    time = "Yesterday",
-                    type = NotificationType.SUMMARY,
-                    isRead = true
-                )
-            )
-        )
-    }
-
     val unreadCount = notifications.count { !it.isRead }
 
     val sheetState = rememberModalBottomSheetState(
@@ -212,9 +168,7 @@ fun NotificationsBottomSheet(
 
                 Row(
                     modifier = Modifier.clickable {
-                        notifications = notifications.map {
-                            it.copy(isRead = true)
-                        }
+                        onMarkAllAsRead()
                     },
                     verticalAlignment = Alignment.CenterVertically
                 ) {
@@ -263,21 +217,15 @@ fun NotificationsBottomSheet(
 
                         onClick = {
 
-                            notifications = notifications.map {
-                                if (it.id == notification.id) {
-                                    it.copy(isRead = true)
-                                } else {
-                                    it
-                                }
+                            if (!notification.isRead) {
+                                onMarkAsRead(notification.id)
                             }
 
                             onNotificationClick(notification)
                         },
 
                         onDelete = {
-                            notifications = notifications.filterNot {
-                                it.id == notification.id
-                            }
+                            onDeleteNotification(notification.id)
                         }
                     )
                 }

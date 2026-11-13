@@ -24,6 +24,9 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.healthmate.ui.profile.model.LanguageUiModel
+import androidx.compose.ui.res.stringResource
+import com.healthmate.R
+
 
 private val LanguageBlue = Color(0xFF0752CC)
 private val LanguageText = Color(0xFF102641)
@@ -33,20 +36,16 @@ private val LanguagePaleBlue = Color(0xFFEDF2FF)
 
 private val availableLanguages = listOf(
     LanguageUiModel(
-        "en", "English",
-        "Default (Clinical Global)", "🇬🇧"
+        code = "en",
+        nameResId = R.string.language_english,
+        nativeNameResId = R.string.native_english,
+        flag = "🇬🇧"
     ),
     LanguageUiModel(
-        "si", "Sinhala", "සිංහල", "🇱🇰"
-    ),
-    LanguageUiModel(
-        "ta", "Tamil", "தமிழ்", "🇱🇰"
-    ),
-    LanguageUiModel(
-        "hi", "Hindi", "हिन्दी", "🇮🇳"
-    ),
-    LanguageUiModel(
-        "ar", "Arabic", "العربية", "🇸🇦"
+        code = "ta",
+        nameResId = R.string.language_tamil,
+        nativeNameResId = R.string.native_tamil,
+        flag = "🇱🇰"
     )
 )
 
@@ -64,7 +63,7 @@ fun LanguageScreen(
     Column(
         modifier = modifier
             .fillMaxSize()
-            .background(LanguageBackground)
+            .background(MaterialTheme.colorScheme.background)
             .statusBarsPadding()
     ) {
 
@@ -83,7 +82,7 @@ fun LanguageScreen(
                 Icon(
                     imageVector = Icons.Default.ArrowBack,
                     contentDescription = "Back to Settings",
-                    tint = LanguageText,
+                    tint = MaterialTheme.colorScheme.onSurface,
                     modifier = Modifier.size(23.dp)
                 )
             }
@@ -91,10 +90,10 @@ fun LanguageScreen(
             Spacer(Modifier.width(5.dp))
 
             Text(
-                text = "Settings",
+                text = stringResource(R.string.settings),
                 fontSize = 17.sp,
                 fontWeight = FontWeight.Medium,
-                color = LanguageText
+                color = MaterialTheme.colorScheme.onSurface
             )
         }
 
@@ -115,8 +114,8 @@ fun LanguageScreen(
                     .background(
                         Brush.horizontalGradient(
                             listOf(
-                                Color(0xFFF0F4FF),
-                                Color(0xFFE8EEFF)
+                                MaterialTheme.colorScheme.surface,
+                                MaterialTheme.colorScheme.surfaceVariant
                             )
                         )
                     )
@@ -127,7 +126,7 @@ fun LanguageScreen(
                     modifier = Modifier
                         .size(48.dp)
                         .background(
-                            Color(0xFFD8E7FF),
+                            MaterialTheme.colorScheme.surfaceVariant,
                             CircleShape
                         ),
                     contentAlignment = Alignment.Center
@@ -135,7 +134,7 @@ fun LanguageScreen(
                     Icon(
                         imageVector = Icons.Default.Language,
                         contentDescription = null,
-                        tint = LanguageBlue,
+                        tint = MaterialTheme.colorScheme.primary,
                         modifier = Modifier.size(25.dp)
                     )
                 }
@@ -144,19 +143,19 @@ fun LanguageScreen(
 
                 Column {
                     Text(
-                        text = "Choose Your Language",
+                        text = stringResource(R.string.choose_language),
                         fontSize = 17.sp,
                         fontWeight = FontWeight.SemiBold,
-                        color = LanguageText
+                        color = MaterialTheme.colorScheme.onSurface
                     )
 
                     Spacer(Modifier.height(4.dp))
 
                     Text(
-                        text = "Select your preferred dialect and medical terminology for HealthMate.",
+                        text = stringResource(R.string.language_description),
                         fontSize = 13.sp,
                         lineHeight = 20.sp,
-                        color = LanguageSecondary
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                 }
             }
@@ -171,33 +170,16 @@ fun LanguageScreen(
             ) {
                 Column {
                     Text(
-                        text = "Available Languages",
+                        text = stringResource(R.string.available_languages),
                         fontSize = 16.sp,
                         fontWeight = FontWeight.SemiBold,
-                        color = LanguageText
+                        color = MaterialTheme.colorScheme.onSurface
                     )
 
                     Text(
-                        text = "Select one language to continue",
+                        text = stringResource(R.string.select_language_instruction),
                         fontSize = 12.sp,
-                        color = LanguageSecondary
-                    )
-                }
-
-                Box(
-                    modifier = Modifier
-                        .clip(CircleShape)
-                        .background(Color(0xFFDFE9FF))
-                        .padding(
-                            horizontal = 12.dp,
-                            vertical = 5.dp
-                        )
-                ) {
-                    Text(
-                        text = "5 OPTIONS",
-                        fontSize = 10.sp,
-                        fontWeight = FontWeight.SemiBold,
-                        color = LanguageSecondary
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                 }
             }
@@ -230,14 +212,14 @@ fun LanguageScreen(
                     .height(56.dp),
                 shape = CircleShape,
                 colors = ButtonDefaults.buttonColors(
-                    containerColor = LanguageBlue
+                    containerColor = MaterialTheme.colorScheme.primary
                 ),
                 elevation = ButtonDefaults.buttonElevation(
                     defaultElevation = 3.dp
                 )
             ) {
                 Text(
-                    text = "Save Language",
+                    text = stringResource(R.string.save_language),
                     fontSize = 14.sp,
                     fontWeight = FontWeight.SemiBold
                 )
@@ -254,11 +236,11 @@ fun LanguageScreen(
             Spacer(Modifier.height(13.dp))
 
             Text(
-                text = "Can change language preferences later in Settings.",
+                text = stringResource(R.string.language_change_hint),
                 modifier = Modifier.fillMaxWidth(),
                 textAlign = TextAlign.Center,
                 fontSize = 12.sp,
-                color = LanguageSecondary
+                color = MaterialTheme.colorScheme.onSurfaceVariant
             )
 
             Spacer(Modifier.height(32.dp))
@@ -278,8 +260,8 @@ private fun LanguageOptionCard(
             .height(76.dp)
             .clip(RoundedCornerShape(38.dp))
             .background(
-                if (isSelected) LanguagePaleBlue
-                else Color.White
+                if (isSelected) MaterialTheme.colorScheme.primaryContainer
+                else MaterialTheme.colorScheme.surface
             )
             .clickable(onClick = onClick)
             .padding(horizontal = 16.dp),
@@ -291,7 +273,7 @@ private fun LanguageOptionCard(
             modifier = Modifier
                 .size(44.dp)
                 .background(
-                    Color(0xFFD9E8FF),
+                    MaterialTheme.colorScheme.surfaceVariant,
                     CircleShape
                 ),
             contentAlignment = Alignment.Center
@@ -311,10 +293,10 @@ private fun LanguageOptionCard(
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Text(
-                    text = language.name,
+                    text = stringResource(language.nameResId),
                     fontSize = 15.sp,
                     fontWeight = FontWeight.SemiBold,
-                    color = LanguageText
+                    color = MaterialTheme.colorScheme.onSurface
                 )
 
                 Spacer(Modifier.width(8.dp))
@@ -322,7 +304,7 @@ private fun LanguageOptionCard(
                 Box(
                     modifier = Modifier
                         .clip(CircleShape)
-                        .background(Color(0xFFDFE9FF))
+                        .background(MaterialTheme.colorScheme.surfaceVariant)
                         .padding(
                             horizontal = 9.dp,
                             vertical = 3.dp
@@ -331,7 +313,7 @@ private fun LanguageOptionCard(
                     Text(
                         text = language.code.uppercase(),
                         fontSize = 10.sp,
-                        color = LanguageSecondary
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                 }
             }
@@ -339,9 +321,9 @@ private fun LanguageOptionCard(
             Spacer(Modifier.height(3.dp))
 
             Text(
-                text = language.nativeName,
+                text = stringResource(language.nativeNameResId),
                 fontSize = 13.sp,
-                color = LanguageSecondary
+                color = MaterialTheme.colorScheme.onSurfaceVariant
             )
         }
 
@@ -350,8 +332,8 @@ private fun LanguageOptionCard(
             modifier = Modifier
                 .size(28.dp)
                 .background(
-                    if (isSelected) LanguageBlue
-                    else Color(0xFFDCE8FF),
+                    if (isSelected) MaterialTheme.colorScheme.primary
+                    else MaterialTheme.colorScheme.outlineVariant,
                     CircleShape
                 )
         )

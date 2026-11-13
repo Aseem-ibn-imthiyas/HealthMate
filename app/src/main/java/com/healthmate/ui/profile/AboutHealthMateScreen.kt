@@ -8,9 +8,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.Favorite
-import androidx.compose.material.icons.filled.FavoriteBorder
 import androidx.compose.material.icons.filled.Verified
-import androidx.compose.material.icons.filled.MonitorHeart
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Text
@@ -23,6 +21,11 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.foundation.Image
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.res.painterResource
+import com.healthmate.R
+import androidx.compose.material3.MaterialTheme
 
 private val AboutBackground = Color(0xFFF7F8FF)
 private val AboutBlue = Color(0xFF2563EB)
@@ -39,7 +42,7 @@ fun AboutHealthMateScreen(
     Column(
         modifier = modifier
             .fillMaxSize()
-            .background(AboutBackground)
+            .background(MaterialTheme.colorScheme.background)
             .statusBarsPadding()
     ) {
 
@@ -59,7 +62,7 @@ fun AboutHealthMateScreen(
                 Icon(
                     imageVector = Icons.Default.ArrowBack,
                     contentDescription = "Back to Settings",
-                    tint = AboutDark,
+                    tint = MaterialTheme.colorScheme.onSurface,
                     modifier = Modifier.size(23.dp)
                 )
             }
@@ -70,7 +73,7 @@ fun AboutHealthMateScreen(
                 text = "Settings",
                 fontSize = 17.sp,
                 fontWeight = FontWeight.Medium,
-                color = AboutDark
+                color = MaterialTheme.colorScheme.onSurface
             )
         }
 
@@ -84,35 +87,20 @@ fun AboutHealthMateScreen(
 
             Spacer(modifier = Modifier.weight(1f))
 
+
             // Application Logo
             Box(
                 modifier = Modifier.size(86.dp),
                 contentAlignment = Alignment.Center
             ) {
-
-                Box(
+                Image(
+                    painter = painterResource(id = R.drawable.health_mate_logo),
+                    contentDescription = "HealthMate logo",
                     modifier = Modifier
                         .size(80.dp)
-                        .clip(RoundedCornerShape(17.dp))
-                        .background(AboutBlue),
-                    contentAlignment = Alignment.Center
-                ) {
-
-                    Box(
-                        modifier = Modifier
-                            .size(40.dp)
-                            .clip(CircleShape)
-                            .background(Color.Transparent),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        Icon(
-                            imageVector = Icons.Default.MonitorHeart,
-                            contentDescription = "HealthMate logo",
-                            tint = Color.White,
-                            modifier = Modifier.size(29.dp)
-                        )
-                    }
-                }
+                        .clip(RoundedCornerShape(17.dp)),
+                    contentScale = ContentScale.Crop
+                )
 
                 // Verified Badge
                 Box(
@@ -121,17 +109,18 @@ fun AboutHealthMateScreen(
                         .offset(x = (-1).dp, y = 1.dp)
                         .size(25.dp)
                         .clip(CircleShape)
-                        .background(Color.White),
+                        .background(MaterialTheme.colorScheme.surface),
                     contentAlignment = Alignment.Center
                 ) {
                     Icon(
                         imageVector = Icons.Default.Verified,
                         contentDescription = "Verified application",
-                        tint = AboutBlue,
+                        tint = MaterialTheme.colorScheme.primary,
                         modifier = Modifier.size(19.dp)
                     )
                 }
             }
+
 
             Spacer(modifier = Modifier.height(15.dp))
 
@@ -140,7 +129,7 @@ fun AboutHealthMateScreen(
                 text = "HealthMate",
                 fontSize = 21.sp,
                 fontWeight = FontWeight.Bold,
-                color = AboutDark
+                color = MaterialTheme.colorScheme.onSurface
             )
 
             Spacer(modifier = Modifier.height(3.dp))
@@ -149,7 +138,7 @@ fun AboutHealthMateScreen(
             Text(
                 text = "Your Health, Your Journey",
                 fontSize = 14.sp,
-                color = AboutSecondary
+                color = MaterialTheme.colorScheme.onSurfaceVariant
             )
 
             Spacer(modifier = Modifier.height(9.dp))
@@ -177,7 +166,7 @@ fun AboutHealthMateScreen(
             Text(
                 text = "Developed as part of Mobile Application Development",
                 fontSize = 12.sp,
-                color = AboutSecondary,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
                 textAlign = TextAlign.Center
             )
 
@@ -187,7 +176,7 @@ fun AboutHealthMateScreen(
             Text(
                 text = "Copyright © 2026 HealthMate",
                 fontSize = 11.sp,
-                color = AboutSecondary
+                color = MaterialTheme.colorScheme.onSurfaceVariant
             )
 
             Spacer(modifier = Modifier.weight(1f))
@@ -204,13 +193,13 @@ fun AboutHealthMateScreen(
                     modifier = Modifier
                         .size(38.dp)
                         .clip(CircleShape)
-                        .background(AboutPaleBlue),
+                        .background(MaterialTheme.colorScheme.surfaceVariant),
                     contentAlignment = Alignment.Center
                 ) {
                     Icon(
                         imageVector = Icons.Default.Favorite,
                         contentDescription = "Made with care",
-                        tint = AboutBlue,
+                        tint = MaterialTheme.colorScheme.primary,
                         modifier = Modifier.size(19.dp)
                     )
                 }
@@ -221,7 +210,7 @@ fun AboutHealthMateScreen(
                     text = "Made with Care",
                     fontSize = 17.sp,
                     fontWeight = FontWeight.Bold,
-                    color = AboutDark
+                    color = MaterialTheme.colorScheme.onSurface
                 )
 
                 Spacer(modifier = Modifier.height(5.dp))
@@ -229,7 +218,7 @@ fun AboutHealthMateScreen(
                 Text(
                     text = "Helping build healthier habits, one step at a time.",
                     fontSize = 13.sp,
-                    color = AboutSecondary,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
                     textAlign = TextAlign.Center
                 )
             }
@@ -244,7 +233,7 @@ private fun AboutInfoBadge(
     Box(
         modifier = Modifier
             .clip(CircleShape)
-            .background(Color(0xFFDCE8FA))
+            .background(MaterialTheme.colorScheme.surfaceVariant)
             .padding(
                 horizontal = 11.dp,
                 vertical = 4.dp
@@ -254,7 +243,7 @@ private fun AboutInfoBadge(
             text = text,
             fontSize = 10.sp,
             fontWeight = FontWeight.SemiBold,
-            color = AboutDark
+            color = MaterialTheme.colorScheme.onSurface
         )
     }
 }
